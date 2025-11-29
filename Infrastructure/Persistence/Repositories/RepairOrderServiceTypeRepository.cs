@@ -1,0 +1,54 @@
+﻿using Application.Common.Interfaces.Repositories;
+using Domain.RepairOrdersServiceTypes;
+using Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Infrastructure.Persistence.Repositories;
+
+public class RepairOrderServiceTypeRepository : IRepairOrderServiceTypeRepository
+{
+    private readonly ApplicationDbContext _context;
+
+    public RepairOrderServiceTypeRepository(ApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task AddAsync(RepairOrderServiceType entity, CancellationToken cancellationToken = default)
+    {
+        await _context.Set<RepairOrderServiceType>().AddAsync(entity, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task DeleteAsync(RepairOrderServiceType entity, CancellationToken cancellationToken = default)
+    {
+        _context.Set<RepairOrderServiceType>().Remove(entity);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<IEnumerable<RepairOrderServiceType>> GetByOrderIdAsync(Guid orderId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Set<RepairOrderServiceType>()
+            .Where(x => x.OrderId == orderId)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<bool> ExistsAsync(Guid orderId, Guid serviceId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Set<RepairOrderServiceType>()
+            .AnyAsync(x => x.OrderId == orderId && x.ServiceId == serviceId, cancellationToken);
+    }
+    public async Task<IEnumerable<RepairOrderServiceType>> GetByServiceIdAsync(Guid serviceId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Set<RepairOrderServiceType>()
+            .Where(x => x.ServiceId == serviceId)
+            .ToListAsync(cancellationToken);
+    }
+
+
+}
