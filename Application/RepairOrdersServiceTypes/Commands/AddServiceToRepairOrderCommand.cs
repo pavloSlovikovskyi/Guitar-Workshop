@@ -1,8 +1,9 @@
 ﻿using Application.Common;
+using Domain.RepairOrders;
+using Domain.ServiceTypes;
 using MediatR;
-using System;
 
 namespace Application.RepairOrdersServiceTypes.Commands
 {
-    public record AddServiceToRepairOrderCommand(Guid OrderId, Guid ServiceId) : IRequest<Result>;
+    public record AddServiceToRepairOrderCommand(RepairOrderId OrderId, ServiceTypeId ServiceId) : IRequest<Result>;
 }

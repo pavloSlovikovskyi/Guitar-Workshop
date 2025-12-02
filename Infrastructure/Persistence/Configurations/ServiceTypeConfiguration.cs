@@ -11,7 +11,12 @@ namespace Infrastructure.Persistence.Configurations
             builder.ToTable("service_types");
 
             builder.HasKey(s => s.Id);
-            builder.Property(s => s.Id).HasColumnName("id").ValueGeneratedNever();
+            builder.Property(s => s.Id)
+                .HasColumnName("id")
+                .HasConversion(
+                    v => v.Value,
+                    v => new ServiceTypeId(v))
+                .ValueGeneratedNever();
 
             builder.Property(s => s.Title)
                 .HasColumnName("title")

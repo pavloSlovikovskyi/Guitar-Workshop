@@ -22,6 +22,77 @@ namespace Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Domain.Customers.Customer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("first_name");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("last_name");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("phone_number");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("customers", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.InstrumentPassports.InstrumentPassport", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Details")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("details");
+
+                    b.Property<Guid>("InstrumentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("instrument_id");
+
+                    b.Property<DateTime>("IssueDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("issue_date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InstrumentId")
+                        .IsUnique();
+
+                    b.ToTable("instrument_passports", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Instruments.Instrument", b =>
                 {
                     b.Property<Guid>("Id")
@@ -61,8 +132,9 @@ namespace Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
-                    b.HasKey("Id")
-                        .HasName("pk_instruments");
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
 
                     b.ToTable("instruments", (string)null);
                 });
@@ -100,8 +172,9 @@ namespace Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
-                    b.HasKey("Id")
-                        .HasName("pk_repair_orders");
+                    b.HasKey("Id");
+
+                    b.HasIndex("InstrumentId");
 
                     b.ToTable("repair_orders", (string)null);
                 });
@@ -116,8 +189,9 @@ namespace Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("service_id");
 
-                    b.HasKey("OrderId", "ServiceId")
-                        .HasName("pk_repair_order_service_types");
+                    b.HasKey("OrderId", "ServiceId");
+
+                    b.HasIndex("ServiceId");
 
                     b.ToTable("repair_order_service_types", (string)null);
                 });
@@ -145,10 +219,77 @@ namespace Infrastructure.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("title");
 
-                    b.HasKey("Id")
-                        .HasName("pk_service_types");
+                    b.HasKey("Id");
 
                     b.ToTable("service_types", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.InstrumentPassports.InstrumentPassport", b =>
+                {
+                    b.HasOne("Domain.Instruments.Instrument", "Instrument")
+                        .WithOne("InstrumentPassport")
+                        .HasForeignKey("Domain.InstrumentPassports.InstrumentPassport", "InstrumentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Instrument");
+                });
+
+            modelBuilder.Entity("Domain.Instruments.Instrument", b =>
+                {
+                    b.HasOne("Domain.Customers.Customer", "Customer")
+                        .WithMany("Instruments")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("Domain.RepairOrders.RepairOrder", b =>
+                {
+                    b.HasOne("Domain.Instruments.Instrument", "Instrument")
+                        .WithMany()
+                        .HasForeignKey("InstrumentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Instrument");
+                });
+
+            modelBuilder.Entity("Domain.RepairOrdersServiceTypes.RepairOrderServiceType", b =>
+                {
+                    b.HasOne("Domain.RepairOrders.RepairOrder", "Order")
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.ServiceTypes.ServiceType", "ServiceType")
+                        .WithMany("RepairOrderLinks")
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+
+                    b.Navigation("ServiceType");
+                });
+
+            modelBuilder.Entity("Domain.Customers.Customer", b =>
+                {
+                    b.Navigation("Instruments");
+                });
+
+            modelBuilder.Entity("Domain.Instruments.Instrument", b =>
+                {
+                    b.Navigation("InstrumentPassport")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.ServiceTypes.ServiceType", b =>
+                {
+                    b.Navigation("RepairOrderLinks");
                 });
 #pragma warning restore 612, 618
         }

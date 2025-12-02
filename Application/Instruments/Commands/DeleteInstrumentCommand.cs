@@ -1,12 +1,8 @@
-﻿using Application.Common;
+﻿using Domain.Instruments;
+using Application.Common;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Instruments.Commands
 {
-    public record DeleteInstrumentCommand(Guid Id) : IRequest<Result>;
+    public record DeleteInstrumentCommand(InstrumentId Id) : IRequest<Result>;
 }

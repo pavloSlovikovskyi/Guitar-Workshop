@@ -1,7 +1,5 @@
 ﻿using Application.Common;
 using Application.Common.Interfaces.Repositories;
-using Application.RepairOrdersServiceTypes.Queries;
-using Application.RepairOrdersServiceTypes.Commands;
 using Domain.RepairOrdersServiceTypes;
 using MediatR;
 using System.Collections.Generic;

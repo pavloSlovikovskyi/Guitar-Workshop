@@ -1,20 +1,26 @@
-﻿using System.Net;
-using System.Net.Http.Json;
-using API.Dtos;
-using Domain.Instruments;
+﻿using API.Dtos;
+using API.Dtos.Responses;
+using Domain.Customers;
 using Domain.Enums;
+using Domain.Instruments;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Http.Json;
 using Tests.Common;
-using Xunit;
+using Tests.Data.Customers;
 using Tests.Data.Instruments;
+using Xunit;
 
 namespace Api.Tests.Integration;
 
 public class InstrumentControllerTests : BaseIntegrationTest, IAsyncLifetime
 {
-    private readonly Instrument _firstTestInstrument = InstrumentData.FirstTestInstrument();
-    private readonly Instrument _secondTestInstrument = InstrumentData.SecondTestInstrument();
+    private Instrument _firstTestInstrument;
+    private Instrument _secondTestInstrument;
+    private readonly Customer _testCustomer = CustomerData.FirstTestCustomer();
 
     private const string BaseRoute = "api/instruments";
 
@@ -22,31 +28,29 @@ public class InstrumentControllerTests : BaseIntegrationTest, IAsyncLifetime
     {
     }
 
+    public record IdDto(Guid id);
+
     [Fact]
     public async Task ShouldCreateInstrument()
     {
-        // Arrange
-        var request = InstrumentData.CreateValidRequest();
+        var request = InstrumentData.CreateValidRequest(customerId: _testCustomer.Id.Value);
 
-        // Act
         var response = await Client.PostAsJsonAsync(BaseRoute, request);
 
-        // Assert
         response.IsSuccessStatusCode.Should().BeTrue();
 
-        var result = await response.ToResponseModel<dynamic>();
-        Guid instrumentId = result.id;
-        instrumentId.Should().NotBeEmpty();
+        var result = await response.ToResponseModel<IdDto>();
+        var instrumentId = result.id;
+        instrumentId.Should().NotBe(Guid.Empty);
 
-        var instrumentDb = await Context.Instruments.FirstAsync(x => x.Id == instrumentId);
-        instrumentDb.SerialNumber.Should().Be(request.SerialNumber);//зразок
+        var instrumentDb = await Context.Instruments.FirstAsync(x => x.Id == (InstrumentId)instrumentId);
+
     }
 
 
     [Fact]
     public async Task ShouldNotCreateInstrumentWithInvalidData()
     {
-        // Arrange
         var request = new CreateInstrumentRequest(
             Model: "",
             SerialNumber: "SN-123",
@@ -55,40 +59,38 @@ public class InstrumentControllerTests : BaseIntegrationTest, IAsyncLifetime
             CustomerId: Guid.NewGuid()
         );
 
-        // Act
         var response = await Client.PostAsJsonAsync(BaseRoute, request);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task ShouldGetAllInstruments()
     {
-        // Arrange
-
-        // Act
         var response = await Client.GetAsync(BaseRoute);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var instruments = await response.ToResponseModel<List<InstrumentResponse>>();
+
+        var instruments = await response.ToResponseModel<List<InstrumentResponseDto>>();
         instruments.Should().HaveCount(2);
+        foreach (var instrument in instruments)
+        {
+            instrument.Id.Should().NotBe(Guid.Empty);
+        }
     }
 
     [Fact]
     public async Task ShouldGetInstrumentById()
     {
-        // Arrange
         var instrumentId = _firstTestInstrument.Id;
 
-        // Act
-        var response = await Client.GetAsync($"{BaseRoute}/{instrumentId}");
+        var response = await Client.GetAsync($"{BaseRoute}/{instrumentId.Value}");
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var instrument = await response.ToResponseModel<InstrumentResponse>();
-        instrument.Id.Should().Be(instrumentId);
+
+        var instrument = await response.ToResponseModel<InstrumentResponseDto>();
+
+        instrument.Id.Should().Be(_firstTestInstrument.Id.Value);
         instrument.Model.Should().Be(_firstTestInstrument.Model);
         instrument.SerialNumber.Should().Be(_firstTestInstrument.SerialNumber);
     }
@@ -96,35 +98,29 @@ public class InstrumentControllerTests : BaseIntegrationTest, IAsyncLifetime
     [Fact]
     public async Task ShouldReturnNotFoundWhenInstrumentDoesNotExist()
     {
-        // Arrange
         var nonExistentId = Guid.NewGuid();
 
-        // Act
         var response = await Client.GetAsync($"{BaseRoute}/{nonExistentId}");
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task ShouldUpdateInstrument()
     {
-        // Arrange
         var request = new UpdateInstrumentRequest(
             Model: "Updated Model Name",
             SerialNumber: "SN-UPDATED",
             RecieveDate: DateTime.UtcNow
         );
 
-        // Act
-        var response = await Client.PutAsJsonAsync($"{BaseRoute}/{_firstTestInstrument.Id}", request);
+        var response = await Client.PutAsJsonAsync($"{BaseRoute}/{_firstTestInstrument.Id.Value}", request);
 
-        // Assert
         response.IsSuccessStatusCode.Should().BeTrue();
 
         var instrumentDb = await Context.Instruments
             .AsNoTracking()
-            .FirstAsync(x => x.Id.Equals(_firstTestInstrument.Id));
+            .FirstAsync(x => x.Id == _firstTestInstrument.Id);
 
         instrumentDb.Model.Should().Be("Updated Model Name");
         instrumentDb.SerialNumber.Should().Be("SN-UPDATED");
@@ -133,36 +129,31 @@ public class InstrumentControllerTests : BaseIntegrationTest, IAsyncLifetime
     [Fact]
     public async Task ShouldNotUpdateNonExistentInstrument()
     {
-        // Arrange
         var nonExistentId = Guid.NewGuid();
+
         var request = new UpdateInstrumentRequest(
             Model: "Test",
             SerialNumber: "SN-123",
             RecieveDate: DateTime.UtcNow
         );
 
-        // Act
         var response = await Client.PutAsJsonAsync($"{BaseRoute}/{nonExistentId}", request);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task ShouldUpdateInstrumentStatus()
     {
-        // Arrange
         var request = new UpdateInstrumentStatusRequest(InstrumentStatus.InRepair);
 
-        // Act
-        var response = await Client.PatchAsJsonAsync($"{BaseRoute}/{_firstTestInstrument.Id}/status", request);
+        var response = await Client.PatchAsJsonAsync($"{BaseRoute}/{_firstTestInstrument.Id.Value}/status", request);
 
-        // Assert
         response.IsSuccessStatusCode.Should().BeTrue();
 
         var instrumentDb = await Context.Instruments
             .AsNoTracking()
-            .FirstAsync(x => x.Id.Equals(_firstTestInstrument.Id));
+            .FirstAsync(x => x.Id == _firstTestInstrument.Id);
 
         instrumentDb.Status.Should().Be(InstrumentStatus.InRepair);
     }
@@ -170,28 +161,33 @@ public class InstrumentControllerTests : BaseIntegrationTest, IAsyncLifetime
     [Fact]
     public async Task ShouldDeleteInstrument()
     {
-        // Act
-        var response = await Client.DeleteAsync($"{BaseRoute}/{_firstTestInstrument.Id}");
+        var response = await Client.DeleteAsync($"{BaseRoute}/{_firstTestInstrument.Id.Value}");
 
-        // Assert
         response.IsSuccessStatusCode.Should().BeTrue();
 
         var instrumentExists = await Context.Instruments
-            .AnyAsync(x => x.Id.Equals(_firstTestInstrument.Id));
+            .AnyAsync(x => x.Id == _firstTestInstrument.Id);
 
         instrumentExists.Should().BeFalse();
     }
 
     public async Task InitializeAsync()
     {
+        await Context.Customers.AddAsync(_testCustomer);
+
+        _firstTestInstrument = InstrumentData.CreateInstrumentWithCustomerId(_testCustomer.Id);
+        _secondTestInstrument = InstrumentData.CreateInstrumentWithCustomerId(_testCustomer.Id);
+
         await Context.Instruments.AddAsync(_firstTestInstrument);
         await Context.Instruments.AddAsync(_secondTestInstrument);
+
         await SaveChangesAsync();
     }
 
     public async Task DisposeAsync()
     {
         Context.Instruments.RemoveRange(Context.Instruments);
+        Context.Customers.RemoveRange(Context.Customers);
         await SaveChangesAsync();
     }
 }

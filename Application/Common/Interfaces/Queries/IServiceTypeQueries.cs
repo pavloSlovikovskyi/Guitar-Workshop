@@ -7,7 +7,7 @@ namespace Application.Common.Interfaces.Queries
 {
     public interface IServiceTypeQueries
     {
-        Task<ServiceType?> GetByIdAsync(System.Guid id, CancellationToken cancellationToken = default);
+        Task<ServiceType?> GetByIdAsync(ServiceTypeId id, CancellationToken cancellationToken = default);
         Task<IEnumerable<ServiceType>> GetAllAsync(CancellationToken cancellationToken = default);
     }
 }

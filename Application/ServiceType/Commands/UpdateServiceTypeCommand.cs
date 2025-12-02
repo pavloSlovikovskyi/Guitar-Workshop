@@ -1,11 +1,13 @@
-﻿using MediatR;
-using Application.Common;
+﻿using Application.Common;
+using Domain.ServiceTypes;
+using MediatR;
 
-namespace Application.ServiceTypes.Commands;
-
-public record UpdateServiceTypeCommand(
-    Guid Id,
-    string Title,
-    string Description,
-    decimal Price
-) : IRequest<Result>;
+namespace Application.ServiceTypes.Commands
+{
+    public record UpdateServiceTypeCommand(
+        ServiceTypeId Id,
+        string Title,
+        string Description,
+        decimal Price
+    ) : IRequest<Result>;
+}

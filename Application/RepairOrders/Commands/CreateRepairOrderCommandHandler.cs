@@ -1,31 +1,33 @@
 ﻿using Application.Common;
 using Application.Common.Interfaces.Repositories;
+using Domain.Instruments;
 using Domain.RepairOrders;
 using MediatR;
 
-namespace Application.RepairOrders.Commands;
-
-public class CreateRepairOrderCommandHandler : IRequestHandler<CreateRepairOrderCommand, Result<Guid>>
+namespace Application.RepairOrders.Commands
 {
-    private readonly IRepairOrderRepository _repository;
-
-    public CreateRepairOrderCommandHandler(IRepairOrderRepository repository)
+    public class CreateRepairOrderCommandHandler : IRequestHandler<CreateRepairOrderCommand, Result<RepairOrderId>>
     {
-        _repository = repository;
-    }
+        private readonly IRepairOrderRepository _repository;
 
-    public async Task<Result<Guid>> Handle(CreateRepairOrderCommand request, CancellationToken cancellationToken)
-    {
-        var repairOrder = RepairOrder.New(
-            Guid.NewGuid(),
-            request.InstrumentId,
-            request.OrderDate,
-            request.Status,
-            request.Notes
-        );
+        public CreateRepairOrderCommandHandler(IRepairOrderRepository repository)
+        {
+            _repository = repository;
+        }
 
-        await _repository.AddAsync(repairOrder, cancellationToken);
+        public async Task<Result<RepairOrderId>> Handle(CreateRepairOrderCommand request, CancellationToken cancellationToken)
+        {
+            var repairOrder = RepairOrder.New(
+                RepairOrderId.New(),
+                request.InstrumentId,
+                request.OrderDate,
+                request.Status,
+                request.Notes
+            );
 
-        return Result<Guid>.Success(repairOrder.Id);
+            await _repository.AddAsync(repairOrder, cancellationToken);
+
+            return Result<RepairOrderId>.Success(repairOrder.Id);
+        }
     }
 }

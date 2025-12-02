@@ -1,5 +1,6 @@
 ﻿using Application.Common;
 using Application.Common.Interfaces.Repositories;
+using Domain.RepairOrdersServiceTypes;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,12 +22,10 @@ namespace Application.RepairOrdersServiceTypes.Commands
             if (exists)
                 return Result.Failure("Service already added to order");
 
-            var entity = new Domain.RepairOrdersServiceTypes.RepairOrderServiceType(request.OrderId, request.ServiceId);
+            var entity = RepairOrderServiceType.New(request.OrderId, request.ServiceId);
             await _repository.AddAsync(entity, cancellationToken);
 
             return Result.Success();
         }
     }
-
-   
 }

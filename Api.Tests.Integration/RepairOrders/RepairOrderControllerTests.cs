@@ -1,103 +1,103 @@
-﻿using System.Net;
-using System.Net.Http.Json;
-using API.Dtos;
+﻿using API.Dtos;
+using Domain.Customers;
+using Domain.Enums;
 using Domain.Instruments;
 using Domain.RepairOrders;
-using Domain.Enums;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
+using System.Net.Http.Json;
 using Tests.Common;
-using Xunit;
+using Tests.Data.Customers;
 using Tests.Data.Instruments;
 using Tests.Data.RepairOrders;
+using Tests.Common.ResponseModels;
+using TestModel = Tests.Common.ResponseModels;
+using Xunit;
 
 namespace Api.Tests.Integration;
 
 public class RepairOrderControllerTests : BaseIntegrationTest, IAsyncLifetime
 {
-    private readonly Instrument _testInstrument = InstrumentData.FirstTestInstrument();
-    private readonly RepairOrder _firstTestOrder;
-    private readonly RepairOrder _secondTestOrder;
+    private RepairOrder _firstTestOrder;
+    private RepairOrder _secondTestOrder;
+    private readonly Customer _testCustomer = CustomerData.FirstTestCustomer();
+    private Instrument _testInstrument;
 
     private const string BaseRoute = "api/orders";
 
     public RepairOrderControllerTests(IntegrationTestWebFactory factory) : base(factory)
     {
-        _firstTestOrder = RepairOrderData.FirstTestRepairOrder(_testInstrument.Id);
-        _secondTestOrder = RepairOrderData.SecondTestRepairOrder(_testInstrument.Id);
     }
 
     [Fact]
     public async Task ShouldCreateRepairOrder()
     {
-        // Arrange
         var request = RepairOrderData.CreateValidRequest(_testInstrument.Id);
 
-        // Act
         var response = await Client.PostAsJsonAsync(BaseRoute, request);
 
-        // Assert
         response.IsSuccessStatusCode.Should().BeTrue();
     }
 
     [Fact]
     public async Task ShouldNotCreateOrderWithNonExistentInstrument()
     {
-        // Arrange
-        var request = RepairOrderData.CreateValidRequest(Guid.NewGuid());
+        var request = RepairOrderData.CreateValidRequest(InstrumentId.New());
 
-        // Act
         var response = await Client.PostAsJsonAsync(BaseRoute, request);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task ShouldGetAllRepairOrders()
     {
-        // Act
         var response = await Client.GetAsync(BaseRoute);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var orders = await response.ToResponseModel<List<RepairOrderResponse>>();
+
+        var orders = await response.ToResponseModel<List<TestModel.RepairOrderResponseDto>>();
         orders.Should().HaveCount(2);
+        foreach (var order in orders)
+        {
+            order.Id.Value.Should().NotBe(Guid.Empty);
+            order.InstrumentId.Value.Should().NotBe(Guid.Empty);
+        }
     }
 
     [Fact]
     public async Task ShouldGetRepairOrderById()
     {
-        // Act
-        var response = await Client.GetAsync($"{BaseRoute}/{_firstTestOrder.Id}");
+        var repairOrderId = _firstTestOrder.Id;
 
-        // Assert
+        var response = await Client.GetAsync($"{BaseRoute}/{repairOrderId.Value}");
+
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var order = await response.ToResponseModel<RepairOrderResponse>();
-        order.Id.Should().Be(_firstTestOrder.Id);
-        order.InstrumentId.Should().Be(_testInstrument.Id);
+
+        var order = await response.ToResponseModel<TestModel.RepairOrderResponseDto>();
+
+        order.Id.Value.Should().Be(_firstTestOrder.Id.Value);
+        order.InstrumentId.Value.Should().Be(_testInstrument.Id.Value);
     }
 
     [Fact]
     public async Task ShouldUpdateRepairOrder()
     {
-        // Arrange
         var request = new UpdateRepairOrderRequest(
-            InstrumentId: _testInstrument.Id,
+            InstrumentId: _testInstrument.Id.Value,
             OrderDate: DateTime.UtcNow,
             Status: RepairOrderStatus.Completed,
             Notes: "Repair completed successfully"
         );
 
-        // Act
-        var response = await Client.PutAsJsonAsync($"{BaseRoute}/{_firstTestOrder.Id}", request);
+        var response = await Client.PutAsJsonAsync($"{BaseRoute}/{_firstTestOrder.Id.Value}", request);
 
-        // Assert
         response.IsSuccessStatusCode.Should().BeTrue();
 
         var orderDb = await Context.RepairOrders
             .AsNoTracking()
-            .FirstAsync(x => x.Id.Equals(_firstTestOrder.Id));
+            .FirstAsync(x => x.Id == _firstTestOrder.Id);
 
         orderDb.Status.Should().Be(RepairOrderStatus.Completed);
         orderDb.Notes.Should().Be("Repair completed successfully");
@@ -106,27 +106,31 @@ public class RepairOrderControllerTests : BaseIntegrationTest, IAsyncLifetime
     [Fact]
     public async Task ShouldUpdateRepairOrderStatus()
     {
-        // Arrange
         var request = new UpdateRepairOrderStatusRequest(RepairOrderStatus.InProgress);
 
-        // Act
-        var response = await Client.PatchAsJsonAsync($"{BaseRoute}/{_firstTestOrder.Id}/status", request);
+        var response = await Client.PatchAsJsonAsync($"{BaseRoute}/{_firstTestOrder.Id.Value}/status", request);
 
-        // Assert
         response.IsSuccessStatusCode.Should().BeTrue();
 
         var orderDb = await Context.RepairOrders
             .AsNoTracking()
-            .FirstAsync(x => x.Id.Equals(_firstTestOrder.Id));
+            .FirstAsync(x => x.Id == _firstTestOrder.Id);
 
         orderDb.Status.Should().Be(RepairOrderStatus.InProgress);
     }
 
     public async Task InitializeAsync()
     {
+        await Context.Customers.AddAsync(_testCustomer);
+
+        _testInstrument = InstrumentData.CreateInstrumentWithCustomerId(_testCustomer.Id);
         await Context.Instruments.AddAsync(_testInstrument);
+
+        _firstTestOrder = RepairOrderData.FirstTestRepairOrder(_testInstrument.Id);
+        _secondTestOrder = RepairOrderData.SecondTestRepairOrder(_testInstrument.Id);
         await Context.RepairOrders.AddAsync(_firstTestOrder);
         await Context.RepairOrders.AddAsync(_secondTestOrder);
+
         await SaveChangesAsync();
     }
 
@@ -134,6 +138,7 @@ public class RepairOrderControllerTests : BaseIntegrationTest, IAsyncLifetime
     {
         Context.RepairOrders.RemoveRange(Context.RepairOrders);
         Context.Instruments.RemoveRange(Context.Instruments);
+        Context.Customers.RemoveRange(Context.Customers);
         await SaveChangesAsync();
     }
 }

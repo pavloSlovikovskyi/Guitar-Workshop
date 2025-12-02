@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql;
 using Testcontainers.PostgreSql;
 using Xunit;
@@ -45,7 +46,8 @@ public class IntegrationTestWebFactory : WebApplicationFactory<Program>, IAsyncL
                 dataSource,
                 builder => builder.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName))
             .UseSnakeCaseNamingConvention()
-            .ConfigureWarnings(w => w.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning)));
+            .ConfigureWarnings(w => w.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning)
+            ));
     }
 
     public async Task InitializeAsync()
@@ -53,8 +55,11 @@ public class IntegrationTestWebFactory : WebApplicationFactory<Program>, IAsyncL
         await _dbContainer.StartAsync();
         using var scope = Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        await dbContext.Database.MigrateAsync();
+
+        await dbContext.Database.EnsureDeletedAsync();
+        await dbContext.Database.EnsureCreatedAsync();
     }
+
 
     public new Task DisposeAsync()
     {

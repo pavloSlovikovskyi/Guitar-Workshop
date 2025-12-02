@@ -1,37 +1,39 @@
 ﻿using Application.Common.Interfaces.Repositories;
+using Domain.Instruments;
 using FluentValidation;
 
-namespace Application.RepairOrders.Commands;
-
-public class CreateRepairOrderCommandValidator : AbstractValidator<CreateRepairOrderCommand>
+namespace Application.RepairOrders.Commands
 {
-    private readonly IInstrumentRepository _instrumentRepository;
-
-    public CreateRepairOrderCommandValidator(IInstrumentRepository instrumentRepository)
+    public class CreateRepairOrderCommandValidator : AbstractValidator<CreateRepairOrderCommand>
     {
-        _instrumentRepository = instrumentRepository;
+        private readonly IInstrumentRepository _instrumentRepository;
 
-        RuleFor(x => x.InstrumentId)
-            .NotEmpty().WithMessage("Instrument ID is required")
-            .MustAsync(InstrumentExists).WithMessage("Instrument does not exist");
-
-        RuleFor(x => x.OrderDate)
-            .NotEmpty().WithMessage("Order date is required");
-
-        RuleFor(x => x.Notes)
-            .MaximumLength(1000).WithMessage("Notes must not exceed 1000 characters");
-    }
-
-    private async Task<bool> InstrumentExists(Guid instrumentId, CancellationToken cancellationToken)
-    {
-        try
+        public CreateRepairOrderCommandValidator(IInstrumentRepository instrumentRepository)
         {
-            var instrument = await _instrumentRepository.GetByIdAsync(instrumentId, cancellationToken);
-            return instrument != null;
+            _instrumentRepository = instrumentRepository;
+
+            RuleFor(x => x.InstrumentId)
+                .NotEmpty().WithMessage("Instrument ID is required")
+                .MustAsync(InstrumentExists).WithMessage("Instrument does not exist");
+
+            RuleFor(x => x.OrderDate)
+                .NotEmpty().WithMessage("Order date is required");
+
+            RuleFor(x => x.Notes)
+                .MaximumLength(1000).WithMessage("Notes must not exceed 1000 characters");
         }
-        catch (Exception)
+
+        private async Task<bool> InstrumentExists(InstrumentId instrumentId, CancellationToken cancellationToken)
         {
-            return false;
+            try
+            {
+                var instrument = await _instrumentRepository.GetByIdAsync(instrumentId, cancellationToken);
+                return instrument != null;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
     }
 }

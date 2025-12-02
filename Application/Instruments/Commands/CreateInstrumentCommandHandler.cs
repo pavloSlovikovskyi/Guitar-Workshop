@@ -1,32 +1,34 @@
-﻿using Application.Common.Interfaces.Repositories;
+﻿using Application.Common;
+using Application.Common.Interfaces.Repositories;
+using Domain.Customers;
 using Domain.Instruments;
 using MediatR;
-using Application.Common;
 
-namespace Application.Instruments.Commands;
-
-public class CreateInstrumentCommandHandler : IRequestHandler<CreateInstrumentCommand, Result<Guid>>
+namespace Application.Instruments.Commands
 {
-    private readonly IInstrumentRepository _repository;
-
-    public CreateInstrumentCommandHandler(IInstrumentRepository repository)
+    public class CreateInstrumentCommandHandler : IRequestHandler<CreateInstrumentCommand, Result<InstrumentId>>
     {
-        _repository = repository;
-    }
+        private readonly IInstrumentRepository _repository;
 
-    public async Task<Result<Guid>> Handle(CreateInstrumentCommand request, CancellationToken cancellationToken)
-    {
-        var instrument = Instrument.New(
-            Guid.NewGuid(),
-            request.Model,
-            request.SerialNumber,
-            request.RecieveDate,
-            request.Status,
-            request.CustomerId ?? Guid.Empty
-        );
+        public CreateInstrumentCommandHandler(IInstrumentRepository repository)
+        {
+            _repository = repository;
+        }
 
-        await _repository.AddAsync(instrument, cancellationToken);
+        public async Task<Result<InstrumentId>> Handle(CreateInstrumentCommand request, CancellationToken cancellationToken)
+        {
+            var instrument = Instrument.New(
+                InstrumentId.New(),
+                request.Model,
+                request.SerialNumber,
+                request.RecieveDate,
+                request.Status,
+                request.CustomerId ?? CustomerId.Empty()
+            );
 
-        return Result<Guid>.Success(instrument.Id);
+            await _repository.AddAsync(instrument, cancellationToken);
+
+            return Result<InstrumentId>.Success(instrument.Id);
+        }
     }
 }

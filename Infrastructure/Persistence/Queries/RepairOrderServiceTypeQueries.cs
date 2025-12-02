@@ -1,8 +1,9 @@
 ﻿using Application.Common.Interfaces.Queries;
+using Domain.RepairOrders;
 using Domain.RepairOrdersServiceTypes;
+using Domain.ServiceTypes;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -19,14 +20,14 @@ namespace Infrastructure.Persistence.Queries
             _context = context;
         }
 
-        public async Task<IEnumerable<RepairOrderServiceType>> GetByOrderIdAsync(Guid orderId, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<RepairOrderServiceType>> GetByOrderIdAsync(RepairOrderId orderId, CancellationToken cancellationToken = default)
         {
             return await _context.Set<RepairOrderServiceType>()
                 .Where(x => x.OrderId == orderId)
                 .ToListAsync(cancellationToken);
         }
 
-        public async Task<IEnumerable<RepairOrderServiceType>> GetByServiceIdAsync(Guid serviceId, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<RepairOrderServiceType>> GetByServiceIdAsync(ServiceTypeId serviceId, CancellationToken cancellationToken = default)
         {
             return await _context.Set<RepairOrderServiceType>()
                 .Where(x => x.ServiceId == serviceId)

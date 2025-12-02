@@ -18,10 +18,14 @@ namespace Application.ServiceTypes.Queries
 
         public async Task<Result<ServiceType>> Handle(GetServiceTypeByIdQuery request, CancellationToken cancellationToken)
         {
-            var item = await _repository.GetByIdAsync(request.Id, cancellationToken);
+            var serviceTypeId = new ServiceTypeId(request.Id);
+
+            var item = await _repository.GetByIdAsync(serviceTypeId, cancellationToken);
+
             return item == null
                 ? Result<ServiceType>.Failure("ServiceType not found")
                 : Result<ServiceType>.Success(item);
         }
+
     }
 }

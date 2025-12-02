@@ -1,4 +1,5 @@
 ﻿using Domain.RepairOrders;
+using Domain.Instruments;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -11,10 +12,18 @@ namespace Infrastructure.Persistence.Configurations
             builder.ToTable("repair_orders");
 
             builder.HasKey(r => r.Id);
-            builder.Property(r => r.Id).HasColumnName("id").ValueGeneratedNever();
+            builder.Property(r => r.Id)
+                .HasColumnName("id")
+                .HasConversion(
+                    v => v.Value,
+                    v => new RepairOrderId(v))
+                .ValueGeneratedNever();
 
             builder.Property(r => r.InstrumentId)
                 .HasColumnName("instrument_id")
+                .HasConversion(
+                    v => v.Value,
+                    v => new InstrumentId(v))
                 .IsRequired();
 
             builder.Property(r => r.OrderDate)
@@ -36,6 +45,11 @@ namespace Infrastructure.Persistence.Configurations
 
             builder.Property(r => r.UpdatedAt)
                 .HasColumnName("updated_at");
+
+            builder.HasOne<Instrument>()
+                .WithMany()
+                .HasForeignKey(r => r.InstrumentId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

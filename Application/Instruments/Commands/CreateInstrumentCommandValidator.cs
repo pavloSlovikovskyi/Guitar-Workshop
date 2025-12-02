@@ -1,22 +1,23 @@
 ﻿using FluentValidation;
+using Domain.Enums;
 
-namespace Application.Instruments.Commands;
-
-public class CreateInstrumentCommandValidator : AbstractValidator<CreateInstrumentCommand>
+namespace Application.Instruments.Commands
 {
-    public CreateInstrumentCommandValidator()
+    public class CreateInstrumentCommandValidator : AbstractValidator<CreateInstrumentCommand>
     {
-        RuleFor(x => x.Model)
-            .NotEmpty().WithMessage("Model is required")
-            .MaximumLength(50).WithMessage("Model: max 50 chars").MinimumLength(5);
+        public CreateInstrumentCommandValidator()
+        {
+            RuleFor(x => x.Model)
+                .NotEmpty().WithMessage("Model is required")
+                .MaximumLength(50).WithMessage("Model: max 50 chars").MinimumLength(5);
 
-        RuleFor(x => x.SerialNumber)
-            .NotEmpty().WithMessage("Serial number is required")
-            .MaximumLength(100).WithMessage("Serial number: max 100 chars").MinimumLength(7);
+            RuleFor(x => x.SerialNumber)
+                .NotEmpty().WithMessage("Serial number is required")
+                .MaximumLength(100).WithMessage("Serial number: max 100 chars").MinimumLength(7);
 
-        RuleFor(x => x.Status)
-            .IsInEnum().WithMessage("Status is invalid");
+            RuleFor(x => x.Status)
+                .IsInEnum().WithMessage("Status is invalid");
 
-       
+        }
     }
 }

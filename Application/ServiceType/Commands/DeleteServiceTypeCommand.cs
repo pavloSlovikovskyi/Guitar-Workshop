@@ -1,12 +1,8 @@
 ﻿using Application.Common;
+using Domain.ServiceTypes;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.ServiceTypes.Commands
 {
-    public record DeleteServiceTypeCommand(Guid Id) : IRequest<Result>;
+    public record DeleteServiceTypeCommand(ServiceTypeId Id) : IRequest<Result>;
 }

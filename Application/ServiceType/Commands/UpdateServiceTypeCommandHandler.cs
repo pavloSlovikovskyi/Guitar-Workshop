@@ -1,28 +1,32 @@
 ﻿using Application.Common;
 using Application.Common.Interfaces.Repositories;
+using Domain.ServiceTypes;
 using MediatR;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace Application.ServiceTypes.Commands;
-
-public class UpdateServiceTypeCommandHandler : IRequestHandler<UpdateServiceTypeCommand, Result>
+namespace Application.ServiceTypes.Commands
 {
-    private readonly IServiceTypeRepository _repository;
-
-    public UpdateServiceTypeCommandHandler(IServiceTypeRepository repository)
+    public class UpdateServiceTypeCommandHandler : IRequestHandler<UpdateServiceTypeCommand, Result>
     {
-        _repository = repository;
-    }
+        private readonly IServiceTypeRepository _repository;
 
-    public async Task<Result> Handle(UpdateServiceTypeCommand request, CancellationToken cancellationToken)
-    {
-        var serviceType = await _repository.GetByIdAsync(request.Id, cancellationToken);
-        if (serviceType == null)
-            return Result.Failure("ServiceType not found");
+        public UpdateServiceTypeCommandHandler(IServiceTypeRepository repository)
+        {
+            _repository = repository;
+        }
 
-        serviceType.UpdateDetails(request.Title, request.Description, request.Price);
+        public async Task<Result> Handle(UpdateServiceTypeCommand request, CancellationToken cancellationToken)
+        {
+            var serviceType = await _repository.GetByIdAsync(request.Id, cancellationToken);
+            if (serviceType == null)
+                return Result.Failure("ServiceType not found");
 
-        await _repository.UpdateAsync(serviceType, cancellationToken);
+            serviceType.UpdateDetails(request.Title, request.Description, request.Price);
 
-        return Result.Success();
+            await _repository.UpdateAsync(serviceType, cancellationToken);
+
+            return Result.Success();
+        }
     }
 }

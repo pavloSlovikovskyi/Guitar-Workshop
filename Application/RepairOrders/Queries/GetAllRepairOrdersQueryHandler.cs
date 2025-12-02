@@ -1,21 +1,26 @@
 ﻿using Application.Common;
 using Application.Common.Interfaces.Queries;
-using Application.RepairOrders.Queries;
 using Domain.RepairOrders;
 using MediatR;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
-public class GetAllRepairOrdersQueryHandler : IRequestHandler<GetAllRepairOrdersQuery, Result<List<RepairOrder>>>
+namespace Application.RepairOrders.Queries
 {
-    private readonly IRepairOrderQueries _queries;
-
-    public GetAllRepairOrdersQueryHandler(IRepairOrderQueries queries)
+    public class GetAllRepairOrdersQueryHandler : IRequestHandler<GetAllRepairOrdersQuery, Result<List<RepairOrder>>>
     {
-        _queries = queries;
-    }
+        private readonly IRepairOrderQueries _queries;
 
-    public async Task<Result<List<RepairOrder>>> Handle(GetAllRepairOrdersQuery request, CancellationToken cancellationToken)
-    {
-        var orders = await _queries.GetAllAsync(cancellationToken);
-        return Result<List<RepairOrder>>.Success(orders.ToList());
+        public GetAllRepairOrdersQueryHandler(IRepairOrderQueries queries)
+        {
+            _queries = queries;
+        }
+
+        public async Task<Result<List<RepairOrder>>> Handle(GetAllRepairOrdersQuery request, CancellationToken cancellationToken)
+        {
+            var orders = await _queries.GetAllAsync(cancellationToken);
+            return Result<List<RepairOrder>>.Success(orders.ToList());
+        }
     }
 }

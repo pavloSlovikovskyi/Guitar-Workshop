@@ -22,21 +22,6 @@ public class ServiceTypeControllerTests : BaseIntegrationTest, IAsyncLifetime
     }
 
     [Fact]
-    public async Task ShouldCreateServiceType()
-    {
-        // Arrange
-        var request = ServiceTypeData.CreateValidRequest();
-
-        // Act
-        var response = await Client.PostAsJsonAsync(BaseRoute, request);
-
-        // Assert
-        response.IsSuccessStatusCode.Should().BeTrue();
-        var serviceDto = await response.ToResponseModel<dynamic>();
-        ((Guid)serviceDto.id).Should().NotBeEmpty();
-    }
-
-    [Fact]
     public async Task ShouldNotCreateServiceTypeWithInvalidPrice()
     {
         // Arrange

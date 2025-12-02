@@ -1,29 +1,33 @@
 ﻿using Application.Common.Interfaces.Queries;
 using Domain.ServiceTypes;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace Infrastructure.Persistence.Queries;
-
-public class ServiceTypeQueries : IServiceTypeQueries
+namespace Infrastructure.Persistence.Queries
 {
-    private readonly ApplicationDbContext _context;
-
-    public ServiceTypeQueries(ApplicationDbContext context)
+    public class ServiceTypeQueries : IServiceTypeQueries
     {
-        _context = context;
-    }
+        private readonly ApplicationDbContext _context;
 
-    public async Task<ServiceType?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return await _context.ServiceTypes
-            .AsNoTracking()
-            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
-    }
+        public ServiceTypeQueries(ApplicationDbContext context)
+        {
+            _context = context;
+        }
 
-    public async Task<IEnumerable<ServiceType>> GetAllAsync(CancellationToken cancellationToken = default)
-    {
-        return await _context.ServiceTypes
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
+        public async Task<ServiceType?> GetByIdAsync(ServiceTypeId id, CancellationToken cancellationToken = default)
+        {
+            return await _context.ServiceTypes
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+        }
+
+        public async Task<IEnumerable<ServiceType>> GetAllAsync(CancellationToken cancellationToken = default)
+        {
+            return await _context.ServiceTypes
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
+        }
     }
 }

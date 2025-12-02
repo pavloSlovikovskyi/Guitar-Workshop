@@ -1,10 +1,12 @@
-﻿using MediatR;
-using Application.Common;
+﻿using Application.Common;
+using Domain.ServiceTypes;
+using MediatR;
 
-namespace Application.ServiceTypes.Commands;
-
-public record CreateServiceTypeCommand(
-    string Title,
-    string Description,
-    decimal Price
-) : IRequest<Result<Guid>>;
+namespace Application.ServiceTypes.Commands
+{
+    public record CreateServiceTypeCommand(
+        string Title,
+        string Description,
+        decimal Price
+    ) : IRequest<Result<ServiceTypeId>>;
+}

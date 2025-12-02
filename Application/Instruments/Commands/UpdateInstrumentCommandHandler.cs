@@ -1,32 +1,34 @@
 ﻿using Application.Common.Interfaces.Repositories;
+using Domain.Instruments;
 using MediatR;
 using Application.Common;
 
-namespace Application.Instruments.Commands;
-
-public class UpdateInstrumentCommandHandler : IRequestHandler<UpdateInstrumentCommand, Result>
+namespace Application.Instruments.Commands
 {
-    private readonly IInstrumentRepository _repository;
-
-    public UpdateInstrumentCommandHandler(IInstrumentRepository repository)
+    public class UpdateInstrumentCommandHandler : IRequestHandler<UpdateInstrumentCommand, Result>
     {
-        _repository = repository;
-    }
+        private readonly IInstrumentRepository _repository;
 
-    public async Task<Result> Handle(UpdateInstrumentCommand request, CancellationToken cancellationToken)
-    {
-        var instrument = await _repository.GetByIdAsync(request.Id, cancellationToken);
-        if (instrument is null)
-            return Result.Failure("Instrument not found");
+        public UpdateInstrumentCommandHandler(IInstrumentRepository repository)
+        {
+            _repository = repository;
+        }
 
-        instrument.UpdateDetails(
-            request.Model,
-            request.SerialNumber,
-            request.RecieveDate
-        );
+        public async Task<Result> Handle(UpdateInstrumentCommand request, CancellationToken cancellationToken)
+        {
+            var instrument = await _repository.GetByIdAsync(request.Id, cancellationToken);
+            if (instrument is null)
+                return Result.Failure("Instrument not found");
 
-        await _repository.UpdateAsync(instrument, cancellationToken);
+            instrument.UpdateDetails(
+                request.Model,
+                request.SerialNumber,
+                request.RecieveDate
+            );
 
-        return Result.Success();
+            await _repository.UpdateAsync(instrument, cancellationToken);
+
+            return Result.Success();
+        }
     }
 }

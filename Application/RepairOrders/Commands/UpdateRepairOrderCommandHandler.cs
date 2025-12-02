@@ -1,34 +1,36 @@
 ﻿using Application.Common;
 using Application.Common.Interfaces.Repositories;
+using Domain.RepairOrders;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Application.RepairOrders.Commands;
-
-public class UpdateRepairOrderCommandHandler : IRequestHandler<UpdateRepairOrderCommand, Result>
+namespace Application.RepairOrders.Commands
 {
-    private readonly IRepairOrderRepository _repository;
-
-    public UpdateRepairOrderCommandHandler(IRepairOrderRepository repository)
+    public class UpdateRepairOrderCommandHandler : IRequestHandler<UpdateRepairOrderCommand, Result>
     {
-        _repository = repository;
-    }
+        private readonly IRepairOrderRepository _repository;
 
-    public async Task<Result> Handle(UpdateRepairOrderCommand request, CancellationToken cancellationToken)
-    {
-        var repairOrder = await _repository.GetByIdAsync(request.Id, cancellationToken);
-        if (repairOrder == null)
-            return Result.Failure("Repair order not found");
+        public UpdateRepairOrderCommandHandler(IRepairOrderRepository repository)
+        {
+            _repository = repository;
+        }
 
-        repairOrder.UpdateDetails(
-            request.OrderDate,
-            request.Status,
-            request.Notes
-        );
+        public async Task<Result> Handle(UpdateRepairOrderCommand request, CancellationToken cancellationToken)
+        {
+            var repairOrder = await _repository.GetByIdAsync(request.Id, cancellationToken);
+            if (repairOrder == null)
+                return Result.Failure("Repair order not found");
 
-        await _repository.UpdateAsync(repairOrder, cancellationToken);
+            repairOrder.UpdateDetails(
+                request.OrderDate,
+                request.Status,
+                request.Notes
+            );
 
-        return Result.Success();
+            await _repository.UpdateAsync(repairOrder, cancellationToken);
+
+            return Result.Success();
+        }
     }
 }

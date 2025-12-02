@@ -1,23 +1,27 @@
 ﻿using Application.Common;
 using Application.Common.Interfaces.Queries;
-using Application.RepairOrders.Queries;
 using Domain.RepairOrders;
 using MediatR;
+using System.Threading;
+using System.Threading.Tasks;
 
-public class GetRepairOrderByIdQueryHandler : IRequestHandler<GetRepairOrderByIdQuery, Result<RepairOrder>>
+namespace Application.RepairOrders.Queries
 {
-    private readonly IRepairOrderQueries _queries;
-
-    public GetRepairOrderByIdQueryHandler(IRepairOrderQueries queries)
+    public class GetRepairOrderByIdQueryHandler : IRequestHandler<GetRepairOrderByIdQuery, Result<RepairOrder>>
     {
-        _queries = queries;
-    }
+        private readonly IRepairOrderQueries _queries;
 
-    public async Task<Result<RepairOrder>> Handle(GetRepairOrderByIdQuery request, CancellationToken cancellationToken)
-    {
-        var order = await _queries.GetByIdAsync(request.Id, cancellationToken);
-        return order == null
-            ? Result<RepairOrder>.Failure("Repair order not found")
-            : Result<RepairOrder>.Success(order);
+        public GetRepairOrderByIdQueryHandler(IRepairOrderQueries queries)
+        {
+            _queries = queries;
+        }
+
+        public async Task<Result<RepairOrder>> Handle(GetRepairOrderByIdQuery request, CancellationToken cancellationToken)
+        {
+            var order = await _queries.GetByIdAsync(request.Id, cancellationToken);
+            return order == null
+                ? Result<RepairOrder>.Failure("Repair order not found")
+                : Result<RepairOrder>.Success(order);
+        }
     }
 }

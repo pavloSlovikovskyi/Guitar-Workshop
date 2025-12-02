@@ -32,6 +32,13 @@ public static class ConfigureInfrastructureServices
         services.AddScoped<IRepairOrderQueries, RepairOrderQueries>();
         services.AddScoped<IServiceTypeQueries, ServiceTypeQueries>();
 
+        services.AddScoped<IInstrumentPassportRepository, InstrumentPassportRepository>();
+        services.AddScoped<IInstrumentPassportQueries, InstrumentPassportQueries>();
+
+        services.AddScoped<ICustomerRepository, CustomerRepository>();
+        services.AddScoped<ICustomerQueries, CustomerQueries>();
+
         return services;
     }
+
 }

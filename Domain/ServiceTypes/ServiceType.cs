@@ -1,20 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Domain.RepairOrdersServiceTypes;
 
 namespace Domain.ServiceTypes
 {
     public class ServiceType
     {
-        public Guid Id { get; }
+        public ServiceTypeId Id { get; }
         public string Title { get; private set; }
         public string Description { get; private set; }
         public decimal Price { get; private set; }
 
+        public ICollection<RepairOrderServiceType> RepairOrderLinks { get; private set; } =
+            new List<RepairOrderServiceType>();
 
-        private ServiceType(Guid id, string title, string description, decimal price)
+        private ServiceType(ServiceTypeId id, string title, string description, decimal price)
         {
             Id = id;
             Title = title;
@@ -22,10 +20,8 @@ namespace Domain.ServiceTypes
             Price = price;
         }
 
-        public static ServiceType New(Guid id, string title, string description, decimal price)
-        {
-            return new ServiceType(id, title, description, price);
-        }
+        public static ServiceType New(ServiceTypeId id, string title, string description, decimal price)
+            => new(id, title, description, price);
 
         public void UpdateDetails(string title, string description, decimal price)
         {
@@ -34,5 +30,4 @@ namespace Domain.ServiceTypes
             Price = price;
         }
     }
-
 }

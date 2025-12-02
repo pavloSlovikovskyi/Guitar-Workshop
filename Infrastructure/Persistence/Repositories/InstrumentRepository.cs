@@ -1,7 +1,6 @@
 ﻿using Application.Common.Interfaces.Repositories;
 using Domain.Instruments;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +16,7 @@ namespace Infrastructure.Persistence.Repositories
             _context = context;
         }
 
-        public async Task<Instrument?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<Instrument?> GetByIdAsync(InstrumentId id, CancellationToken cancellationToken = default)
         {
             return await _context.Instruments
                 .FirstOrDefaultAsync(i => i.Id == id, cancellationToken);
@@ -48,7 +47,7 @@ namespace Infrastructure.Persistence.Repositories
             await _context.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<bool> ExistsAsync(InstrumentId id, CancellationToken cancellationToken = default)
         {
             return await _context.Instruments.AnyAsync(i => i.Id == id, cancellationToken);
         }

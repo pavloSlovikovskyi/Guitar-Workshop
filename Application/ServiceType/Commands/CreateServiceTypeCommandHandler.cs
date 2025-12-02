@@ -2,24 +2,27 @@
 using Application.Common.Interfaces.Repositories;
 using Domain.ServiceTypes;
 using MediatR;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace Application.ServiceTypes.Commands;
-
-public class CreateServiceTypeCommandHandler : IRequestHandler<CreateServiceTypeCommand, Result<Guid>>
+namespace Application.ServiceTypes.Commands
 {
-    private readonly IServiceTypeRepository _repository;
-
-    public CreateServiceTypeCommandHandler(IServiceTypeRepository repository)
+    public class CreateServiceTypeCommandHandler : IRequestHandler<CreateServiceTypeCommand, Result<ServiceTypeId>>
     {
-        _repository = repository;
-    }
+        private readonly IServiceTypeRepository _repository;
 
-    public async Task<Result<Guid>> Handle(CreateServiceTypeCommand request, CancellationToken cancellationToken)
-    {
-        var serviceType = ServiceType.New(Guid.NewGuid(), request.Title, request.Description, request.Price);
+        public CreateServiceTypeCommandHandler(IServiceTypeRepository repository)
+        {
+            _repository = repository;
+        }
 
-        await _repository.AddAsync(serviceType, cancellationToken);
+        public async Task<Result<ServiceTypeId>> Handle(CreateServiceTypeCommand request, CancellationToken cancellationToken)
+        {
+            var serviceType = ServiceType.New(ServiceTypeId.New(), request.Title, request.Description, request.Price);
 
-        return Result<Guid>.Success(serviceType.Id);
+            await _repository.AddAsync(serviceType, cancellationToken);
+
+            return Result<ServiceTypeId>.Success(serviceType.Id);
+        }
     }
 }

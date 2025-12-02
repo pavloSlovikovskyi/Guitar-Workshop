@@ -1,10 +1,8 @@
 ﻿using Application.Common;
 using Application.Common.Interfaces.Repositories;
+using Domain.RepairOrders;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Application.RepairOrders.Commands
@@ -24,7 +22,8 @@ namespace Application.RepairOrders.Commands
             if (order == null)
                 return Result.Failure("Repair order not found");
 
-            order.Status = request.Status;
+            order.UpdateStatus(request.Status);
+
             await _repository.UpdateAsync(order, cancellationToken);
 
             return Result.Success();

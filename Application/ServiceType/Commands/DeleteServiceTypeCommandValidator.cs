@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using FluentValidation;
 
 namespace Application.ServiceTypes.Commands
 {
-    internal class DeleteServiceTypeCommandValidator
+    public class DeleteServiceTypeCommandValidator : AbstractValidator<DeleteServiceTypeCommand>
     {
+        public DeleteServiceTypeCommandValidator()
+        {
+            RuleFor(x => x.Id).NotEmpty().WithMessage("ServiceType ID is required");
+        }
     }
 }

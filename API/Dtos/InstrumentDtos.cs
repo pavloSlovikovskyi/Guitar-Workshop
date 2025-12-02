@@ -1,5 +1,6 @@
 ﻿using Domain.Enums;
 using System.Text.Json.Serialization;
+using System;
 
 namespace API.Dtos
 {

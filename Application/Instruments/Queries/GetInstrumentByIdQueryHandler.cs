@@ -2,23 +2,26 @@
 using Application.Common.Interfaces.Queries;
 using Domain.Instruments;
 using MediatR;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace Application.Instruments.Queries;
-
-public class GetInstrumentByIdQueryHandler : IRequestHandler<GetInstrumentByIdQuery, Result<Instrument>>
+namespace Application.Instruments.Queries
 {
-    private readonly IInstrumentQueries _queries;
-
-    public GetInstrumentByIdQueryHandler(IInstrumentQueries queries)
+    public class GetInstrumentByIdQueryHandler : IRequestHandler<GetInstrumentByIdQuery, Result<Instrument>>
     {
-        _queries = queries;
-    }
+        private readonly IInstrumentQueries _queries;
 
-    public async Task<Result<Instrument>> Handle(GetInstrumentByIdQuery request, CancellationToken cancellationToken)
-    {
-        var instrument = await _queries.GetByIdAsync(request.Id, cancellationToken);
-        if (instrument == null)
-            return Result<Instrument>.Failure("Instrument not found");
-        return Result<Instrument>.Success(instrument);
+        public GetInstrumentByIdQueryHandler(IInstrumentQueries queries)
+        {
+            _queries = queries;
+        }
+
+        public async Task<Result<Instrument>> Handle(GetInstrumentByIdQuery request, CancellationToken cancellationToken)
+        {
+            var instrument = await _queries.GetByIdAsync(request.Id, cancellationToken);
+            if (instrument == null)
+                return Result<Instrument>.Failure("Instrument not found");
+            return Result<Instrument>.Success(instrument);
+        }
     }
 }

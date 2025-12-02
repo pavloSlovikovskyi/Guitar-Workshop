@@ -1,8 +1,8 @@
 ﻿using Application.Common;
 using Domain.RepairOrders;
 using MediatR;
-using System;
 
-namespace Application.RepairOrders.Queries;
-
-public record GetRepairOrderByIdQuery(Guid Id) : IRequest<Result<RepairOrder>>;
+namespace Application.RepairOrders.Queries
+{
+    public record GetRepairOrderByIdQuery(RepairOrderId Id) : IRequest<Result<RepairOrder>>;
+}

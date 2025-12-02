@@ -7,7 +7,7 @@ public static class ServiceTypeData
 {
     public static ServiceType FirstTestServiceType() =>
         ServiceType.New(
-            Guid.NewGuid(),
+            ServiceTypeId.New(),
             "Guitar Setup",
             "Complete guitar setup and adjustment",
             50.00m
@@ -15,7 +15,7 @@ public static class ServiceTypeData
 
     public static ServiceType SecondTestServiceType() =>
         ServiceType.New(
-            Guid.NewGuid(),
+            ServiceTypeId.New(),
             "Fret Leveling",
             "Professional fret leveling and polishing",
             120.00m

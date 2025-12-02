@@ -1,26 +1,31 @@
 ﻿using Application.Common;
 using Application.Common.Interfaces.Repositories;
-using Application.RepairOrdersServiceTypes.Commands;
+using Domain.RepairOrdersServiceTypes;
 using MediatR;
+using System.Threading;
+using System.Threading.Tasks;
 
-public class RemoveServiceFromRepairOrderCommandHandler : IRequestHandler<RemoveServiceFromRepairOrderCommand, Result>
+namespace Application.RepairOrdersServiceTypes.Commands
 {
-    private readonly IRepairOrderServiceTypeRepository _repository;
-
-    public RemoveServiceFromRepairOrderCommandHandler(IRepairOrderServiceTypeRepository repository)
+    public class RemoveServiceFromRepairOrderCommandHandler : IRequestHandler<RemoveServiceFromRepairOrderCommand, Result>
     {
-        _repository = repository;
-    }
+        private readonly IRepairOrderServiceTypeRepository _repository;
 
-    public async Task<Result> Handle(RemoveServiceFromRepairOrderCommand request, CancellationToken cancellationToken)
-    {
-        var exists = await _repository.ExistsAsync(request.OrderId, request.ServiceId, cancellationToken);
-        if (!exists)
-            return Result.Failure("Service not found for this order");
+        public RemoveServiceFromRepairOrderCommandHandler(IRepairOrderServiceTypeRepository repository)
+        {
+            _repository = repository;
+        }
 
-        var entity = new Domain.RepairOrdersServiceTypes.RepairOrderServiceType(request.OrderId, request.ServiceId);
-        await _repository.DeleteAsync(entity, cancellationToken);
+        public async Task<Result> Handle(RemoveServiceFromRepairOrderCommand request, CancellationToken cancellationToken)
+        {
+            var exists = await _repository.ExistsAsync(request.OrderId, request.ServiceId, cancellationToken);
+            if (!exists)
+                return Result.Failure("Service not found for this order");
 
-        return Result.Success();
+            var entity = RepairOrderServiceType.New(request.OrderId, request.ServiceId);
+            await _repository.DeleteAsync(entity, cancellationToken);
+
+            return Result.Success();
+        }
     }
 }
