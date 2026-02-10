@@ -77,5 +77,18 @@ namespace API.Controllers
 
             return NoContent();
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var query = new GetAllInstrumentPassportsQuery();
+            var result = await _mediator.Send(query);
+
+            if (!result.IsSuccess)
+                return BadRequest(new { message = result.Error });
+
+            var response = result.Value.Select(InstrumentPassportResponse.FromDomainModel);
+            return Ok(response);
+        }
     }
 }
