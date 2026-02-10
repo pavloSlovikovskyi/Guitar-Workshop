@@ -39,5 +39,15 @@ namespace Infrastructure.Persistence.Queries
                 .Where(r => r.InstrumentId == instrumentId)
                 .ToListAsync(cancellationToken);
         }
+
+        public async Task<List<RepairOrder>> GetAllWithIncludesAsync(CancellationToken cancellationToken)
+        {
+            return await _context.RepairOrders
+                .Include(o => o.Instrument)
+                .Include(o => o.RepairOrderServiceTypes)
+                    .ThenInclude(ros => ros.ServiceType)
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync(cancellationToken);
+        }
     }
 }

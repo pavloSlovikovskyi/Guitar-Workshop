@@ -1,5 +1,6 @@
 ﻿using Domain.Instruments;
 using Domain.Enums;
+using Domain.RepairOrdersServiceTypes;
 
 namespace Domain.RepairOrders
 {
@@ -14,6 +15,7 @@ namespace Domain.RepairOrders
         public string Notes { get; private set; }
         public DateTime CreatedAt { get; }
         public DateTime? UpdatedAt { get; private set; }
+        public IReadOnlyList<RepairOrderServiceType> RepairOrderServiceTypes { get; private set; } = new List<RepairOrderServiceType>();
 
         private RepairOrder(
             RepairOrderId id,
@@ -31,6 +33,7 @@ namespace Domain.RepairOrders
             Notes = notes;
             CreatedAt = createdAt;
             UpdatedAt = updatedAt;
+            RepairOrderServiceTypes = new List<RepairOrderServiceType>();
         }
 
         public static RepairOrder New(

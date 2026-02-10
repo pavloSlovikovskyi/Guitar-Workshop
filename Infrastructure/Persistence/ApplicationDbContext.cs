@@ -76,13 +76,28 @@ namespace Infrastructure.Persistence
                 .Property(r => r.InstrumentId)
                 .HasConversion(instrumentIdConverter);
 
+            modelBuilder.Entity<RepairOrderServiceType>(entity =>
+            {
+                entity.ToTable("repair_order_service_types");
+
+                entity.HasKey(ros => new { ros.OrderId, ros.ServiceId });
+
+                entity.Property(ros => ros.OrderId)
+                      .HasColumnName("order_id");
+
+                entity.Property(ros => ros.ServiceId)
+                      .HasColumnName("service_id");
+            });
+
             modelBuilder.Entity<RepairOrderServiceType>()
                 .Property(r => r.OrderId)
-                .HasConversion(repairOrderServiceTypeOrderIdConverter);
+                .HasConversion(repairOrderServiceTypeOrderIdConverter)
+                .HasColumnName("order_id");
 
             modelBuilder.Entity<RepairOrderServiceType>()
                 .Property(r => r.ServiceId)
-                .HasConversion(repairOrderServiceTypeServiceIdConverter);
+                .HasConversion(repairOrderServiceTypeServiceIdConverter)
+                .HasColumnName("service_id");
 
             modelBuilder.Entity<ServiceType>()
                 .Property(s => s.Id)
@@ -115,7 +130,7 @@ namespace Infrastructure.Persistence
 
             modelBuilder.Entity<RepairOrderServiceType>()
                 .HasOne(rst => rst.Order)
-                .WithMany()
+                .WithMany(o => o.RepairOrderServiceTypes)
                 .HasForeignKey(rst => rst.OrderId)
                 .IsRequired();
 

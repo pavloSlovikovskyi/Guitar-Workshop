@@ -27,6 +27,7 @@ namespace API.Dtos
         RepairOrderStatus Status,
         string Notes,
         DateTime CreatedAt,
-        DateTime? UpdatedAt
+        DateTime? UpdatedAt,
+        List<ServiceTypeResponse> Services
     );
 }

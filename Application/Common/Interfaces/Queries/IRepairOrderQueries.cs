@@ -10,6 +10,7 @@ namespace Application.Common.Interfaces.Queries
     {
         Task<RepairOrder?> GetByIdAsync(RepairOrderId id, CancellationToken cancellationToken = default);
         Task<IEnumerable<RepairOrder>> GetAllAsync(CancellationToken cancellationToken = default);
+        Task<List<RepairOrder>> GetAllWithIncludesAsync(CancellationToken cancellationToken = default);
         Task<IEnumerable<RepairOrder>> GetByInstrumentIdAsync(InstrumentId instrumentId, CancellationToken cancellationToken = default);
     }
 }
