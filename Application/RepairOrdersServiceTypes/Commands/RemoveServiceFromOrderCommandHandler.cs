@@ -18,14 +18,14 @@ namespace Application.RepairOrdersServiceTypes.Commands
 
         public async Task<Result> Handle(RemoveServiceFromRepairOrderCommand request, CancellationToken cancellationToken)
         {
-            var exists = await _repository.ExistsAsync(request.OrderId, request.ServiceId, cancellationToken);
-            if (!exists)
+            var entity = await _repository.GetByOrderAndServiceIdAsync(request.OrderId, request.ServiceId, cancellationToken);
+            if (entity == null)
                 return Result.Failure("Service not found for this order");
 
-            var entity = RepairOrderServiceType.New(request.OrderId, request.ServiceId);
             await _repository.DeleteAsync(entity, cancellationToken);
 
             return Result.Success();
         }
+
     }
 }

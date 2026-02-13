@@ -44,11 +44,12 @@ namespace Domain.RepairOrders
             string notes)
             => new(id, instrumentId, orderDate, status, notes, DateTime.UtcNow, null);
 
-        public void UpdateDetails(DateTime orderDate, RepairOrderStatus status, string notes)
+        public void UpdateDetails(DateTime orderDate, RepairOrderStatus status, string? notes)
         {
             OrderDate = orderDate;
             Status = status;
-            Notes = notes;
+            if (!string.IsNullOrWhiteSpace(notes))
+                Notes = notes;
             UpdatedAt = DateTime.UtcNow;
         }
 

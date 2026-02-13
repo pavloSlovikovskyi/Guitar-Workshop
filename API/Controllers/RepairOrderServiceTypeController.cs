@@ -35,17 +35,21 @@ namespace API.Controllers
             return NoContent();
         }
 
-        [HttpDelete]
-        public async Task<IActionResult> RemoveServiceFromOrder(Guid orderId, [FromBody] RemoveServiceFromOrderRequest request)
+        [HttpDelete("{serviceId:guid}")]
+        public async Task<IActionResult> RemoveServiceFromOrder(Guid orderId, Guid serviceId)
         {
             var command = new RemoveServiceFromRepairOrderCommand(
                 new RepairOrderId(orderId),
-                new ServiceTypeId(request.ServiceId)
+                new ServiceTypeId(serviceId)
             );
+
             var result = await _mediator.Send(command);
             if (!result.IsSuccess)
                 return BadRequest(new { message = result.Error });
+
             return NoContent();
         }
+
+
     }
 }

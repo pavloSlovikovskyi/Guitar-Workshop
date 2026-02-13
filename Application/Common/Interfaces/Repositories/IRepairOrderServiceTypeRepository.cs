@@ -14,5 +14,7 @@ namespace Application.Common.Interfaces.Repositories
         Task<IEnumerable<RepairOrderServiceType>> GetByOrderIdAsync(RepairOrderId orderId, CancellationToken cancellationToken = default);
         Task<bool> ExistsAsync(RepairOrderId orderId, ServiceTypeId serviceId, CancellationToken cancellationToken = default);
         Task<IEnumerable<RepairOrderServiceType>> GetByServiceIdAsync(ServiceTypeId serviceId, CancellationToken cancellationToken = default);
+        Task<RepairOrderServiceType?> GetByOrderAndServiceIdAsync(RepairOrderId orderId, ServiceTypeId serviceId, CancellationToken cancellationToken = default);
+
     }
 }

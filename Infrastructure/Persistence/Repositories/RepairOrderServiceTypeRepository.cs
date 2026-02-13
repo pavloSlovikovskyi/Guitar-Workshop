@@ -50,5 +50,14 @@ namespace Infrastructure.Persistence.Repositories
                 .Where(x => x.ServiceId == serviceId)
                 .ToListAsync(cancellationToken);
         }
+        public async Task<RepairOrderServiceType?> GetByOrderAndServiceIdAsync(
+            RepairOrderId orderId,
+            ServiceTypeId serviceId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.Set<RepairOrderServiceType>()
+                .FirstOrDefaultAsync(x => x.OrderId == orderId && x.ServiceId == serviceId, cancellationToken);
+        }
+
     }
 }
