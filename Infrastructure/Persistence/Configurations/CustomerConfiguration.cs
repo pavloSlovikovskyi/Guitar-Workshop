@@ -44,6 +44,13 @@ namespace Infrastructure.Persistence.Configurations
 
             builder.Property(c => c.UpdatedAt)
                 .HasColumnName("updated_at");
+
+            builder.Property(c => c.IdentityId)
+                .HasColumnName("identity_id")
+                .HasMaxLength(450);
+
+            builder.HasIndex(c => c.IdentityId)
+                .IsUnique();
         }
     }
 }

@@ -1,5 +1,7 @@
-﻿using Application.Common.Interfaces.Queries;
+﻿using Application.Common.Interfaces;
+using Application.Common.Interfaces.Queries;
 using Application.Common.Interfaces.Repositories;
+using Infrastructure.Identity;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Queries;
 using Infrastructure.Persistence.Repositories;
@@ -23,6 +25,9 @@ public static class ConfigureInfrastructureServices
             options.UseNpgsql(connectionString);
             options.UseSnakeCaseNamingConvention();
         });
+
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
 
         services.AddScoped<IInstrumentRepository, InstrumentRepository>();
         services.AddScoped<IRepairOrderRepository, RepairOrderRepository>();
