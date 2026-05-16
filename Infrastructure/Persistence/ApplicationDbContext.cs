@@ -141,6 +141,26 @@ namespace Infrastructure.Persistence
                 .WithMany(st => st.RepairOrderLinks)
                 .HasForeignKey(rst => rst.ServiceId)
                 .IsRequired();
+            // ПРИМУСОВИЙ ФІКС РЕГІСТРУ ДЛЯ IDENTITY (POSTGRES CASE-SENSITIVITY FIX)
+            modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityRole>(b =>
+            {
+                b.Property(r => r.Id).HasColumnName("Id");
+                b.Property(r => r.Name).HasColumnName("Name");
+                b.Property(r => r.NormalizedName).HasColumnName("NormalizedName");
+                b.Property(r => r.ConcurrencyStamp).HasColumnName("ConcurrencyStamp");
+            });
+
+            modelBuilder.Entity<ApplicationUser>(b =>
+            {
+                b.Property(u => u.Id).HasColumnName("Id");
+                b.Property(u => u.UserName).HasColumnName("UserName");
+                b.Property(u => u.NormalizedUserName).HasColumnName("NormalizedUserName");
+                b.Property(u => u.Email).HasColumnName("Email");
+                b.Property(u => u.NormalizedEmail).HasColumnName("NormalizedEmail");
+                b.Property(u => u.PasswordHash).HasColumnName("PasswordHash");
+                b.Property(u => u.SecurityStamp).HasColumnName("SecurityStamp");
+                b.Property(u => u.ConcurrencyStamp).HasColumnName("ConcurrencyStamp");
+            });
 
 
         }

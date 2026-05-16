@@ -29,6 +29,10 @@ public static class ConfigureInfrastructureServices
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 
+        services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
+        services.AddScoped<IJwtTokenService, JwtTokenService>();
+        services.AddScoped<IAuthAccountService, AuthAccountService>();
+
         services.AddScoped<IInstrumentRepository, InstrumentRepository>();
         services.AddScoped<IRepairOrderRepository, RepairOrderRepository>();
         services.AddScoped<IServiceTypeRepository, ServiceTypeRepository>();

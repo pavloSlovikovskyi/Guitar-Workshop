@@ -1,9 +1,11 @@
+using API.Extensions;
 using API.Filters;
 using Application;
 using Application.Common.Interfaces.Queries;
 using Application.Common.Interfaces.Repositories;
 using FluentValidation;
 using Infrastructure;
+using Infrastructure.Identity;
 using Infrastructure.Persistence.Queries;
 using Infrastructure.Persistence.Repositories;
 using Microsoft.AspNetCore.Builder;
@@ -16,6 +18,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
+builder.Services.AddApiAuthentication(builder.Configuration);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -55,6 +58,8 @@ builder.Services.AddControllers(options =>
 
 var app = builder.Build();
 
+await IdentityRoleSeeder.SeedAsync(app.Services);
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -67,6 +72,7 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowAll");
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
