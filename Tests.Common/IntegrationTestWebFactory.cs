@@ -1,4 +1,5 @@
-﻿using Infrastructure.Persistence;
+﻿using Infrastructure.Identity;
+using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -24,6 +25,7 @@ public class IntegrationTestWebFactory : WebApplicationFactory<Program>, IAsyncL
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        builder.UseEnvironment("Testing");
         builder.ConfigureTestServices(services =>
         {
             RegisterDatabase(services);
@@ -58,6 +60,7 @@ public class IntegrationTestWebFactory : WebApplicationFactory<Program>, IAsyncL
 
         await dbContext.Database.EnsureDeletedAsync();
         await dbContext.Database.EnsureCreatedAsync();
+        await IdentityRoleSeeder.SeedAsync(Services);
     }
 
 

@@ -1,27 +1,39 @@
 ﻿using Application.Common;
+using Application.Common.Interfaces;
 using Application.Common.Interfaces.Queries;
 using Domain.Customers;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace Application.Customers.Queries
+namespace Application.Customers.Queries;
+
+public class GetCustomerByIdQueryHandler : IRequestHandler<GetCustomerByIdQuery, Result<Customer>>
 {
-    public class GetCustomerByIdQueryHandler : IRequestHandler<GetCustomerByIdQuery, Result<Customer>>
+    private readonly ICustomerQueries _queries;
+    private readonly ICurrentUserService _currentUser;
+
+    public GetCustomerByIdQueryHandler(ICustomerQueries queries, ICurrentUserService currentUser)
     {
-        private readonly ICustomerQueries _queries;
+        _queries = queries;
+        _currentUser = currentUser;
+    }
 
-        public GetCustomerByIdQueryHandler(ICustomerQueries queries)
+    public async Task<Result<Customer>> Handle(GetCustomerByIdQuery request, CancellationToken cancellationToken)
+    {
+        var customer = await _queries.GetByIdAsync(request.Id, cancellationToken);
+        if (customer is null)
+            return Result<Customer>.Failure(AuthorizationErrors.NotFound);
+
+        if (!_currentUser.IsMaster)
         {
-            _queries = queries;
+            var (guard, customerId) = await AccessGuard.RequireCustomerIdAsync(_currentUser, cancellationToken);
+            if (!guard.IsSuccess)
+                return Result<Customer>.Failure(guard.Error!);
+
+            var ownership = AccessGuard.EnsureOwnCustomer(_currentUser, customer.Id, customerId);
+            if (!ownership.IsSuccess)
+                return Result<Customer>.Failure(ownership.Error!);
         }
 
-        public async Task<Result<Customer>> Handle(GetCustomerByIdQuery request, CancellationToken cancellationToken)
-        {
-            var customer = await _queries.GetByIdAsync(request.Id, cancellationToken);
-            if (customer == null)
-                return Result<Customer>.Failure("Customer not found");
-            return Result<Customer>.Success(customer);
-        }
+        return Result<Customer>.Success(customer);
     }
 }

@@ -23,6 +23,13 @@ namespace Infrastructure.Persistence.Queries
                 .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
         }
 
+        public async Task<Customer?> GetByIdentityIdAsync(string identityId, CancellationToken cancellationToken = default)
+        {
+            return await _context.Customers
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.IdentityId == identityId, cancellationToken);
+        }
+
         public async Task<IEnumerable<Customer>> GetAllAsync(CancellationToken cancellationToken = default)
         {
             return await _context.Customers

@@ -1,4 +1,5 @@
 ﻿using Application.Common;
+using Application.Common.Interfaces;
 using Application.Common.Interfaces.Repositories;
 using Domain.Customers;
 using MediatR;
@@ -11,14 +12,22 @@ namespace Application.Customers.Commands
     public class CreateCustomerCommandHandler : IRequestHandler<CreateCustomerCommand, Result<CustomerId>>
     {
         private readonly ICustomerRepository _repository;
+        private readonly ICurrentUserService _currentUser;
 
-        public CreateCustomerCommandHandler(ICustomerRepository repository)
+        public CreateCustomerCommandHandler(
+            ICustomerRepository repository,
+            ICurrentUserService currentUser)
         {
             _repository = repository;
+            _currentUser = currentUser;
         }
 
         public async Task<Result<CustomerId>> Handle(CreateCustomerCommand request, CancellationToken cancellationToken)
         {
+            var guard = AccessGuard.EnsureMaster(_currentUser);
+            if (!guard.IsSuccess)
+                return Result<CustomerId>.Failure(guard.Error!);
+
             var customer = Customer.New(
                 CustomerId.New(),
                 request.FirstName,

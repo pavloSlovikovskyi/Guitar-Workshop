@@ -1,27 +1,43 @@
 ﻿using Application.Common;
+using Application.Common.Interfaces;
 using Application.Common.Interfaces.Queries;
 using Domain.InstrumentPassports;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace Application.InstrumentPassports.Queries
+namespace Application.InstrumentPassports.Queries;
+
+public class GetInstrumentPassportByIdQueryHandler
+    : IRequestHandler<GetInstrumentPassportByIdQuery, Result<InstrumentPassport>>
 {
-    public class GetInstrumentPassportByIdQueryHandler : IRequestHandler<GetInstrumentPassportByIdQuery, Result<InstrumentPassport>>
+    private readonly IInstrumentPassportQueries _queries;
+    private readonly ICurrentUserService _currentUser;
+
+    public GetInstrumentPassportByIdQueryHandler(
+        IInstrumentPassportQueries queries,
+        ICurrentUserService currentUser)
     {
-        private readonly IInstrumentPassportQueries _queries;
+        _queries = queries;
+        _currentUser = currentUser;
+    }
 
-        public GetInstrumentPassportByIdQueryHandler(IInstrumentPassportQueries queries)
+    public async Task<Result<InstrumentPassport>> Handle(
+        GetInstrumentPassportByIdQuery request,
+        CancellationToken cancellationToken)
+    {
+        var passport = await _queries.GetByIdWithInstrumentAsync(request.Id, cancellationToken);
+        if (passport is null)
+            return Result<InstrumentPassport>.Failure(AuthorizationErrors.NotFound);
+
+        if (!_currentUser.IsMaster)
         {
-            _queries = queries;
+            var (guard, customerId) = await AccessGuard.RequireCustomerIdAsync(_currentUser, cancellationToken);
+            if (!guard.IsSuccess)
+                return Result<InstrumentPassport>.Failure(guard.Error!);
+
+            if (passport.Instrument is null || passport.Instrument.CustomerId != customerId)
+                return Result<InstrumentPassport>.Failure(AuthorizationErrors.NotFound);
         }
 
-        public async Task<Result<InstrumentPassport>> Handle(GetInstrumentPassportByIdQuery request, CancellationToken cancellationToken)
-        {
-            var passport = await _queries.GetByIdAsync(request.Id, cancellationToken);
-            if (passport == null)
-                return Result<InstrumentPassport>.Failure("Instrument passport not found");
-            return Result<InstrumentPassport>.Success(passport);
-        }
+        return Result<InstrumentPassport>.Success(passport);
     }
 }

@@ -1,27 +1,41 @@
 ﻿using Application.Common;
+using Application.Common.Interfaces;
 using Application.Common.Interfaces.Queries;
 using Domain.Instruments;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace Application.Instruments.Queries
+namespace Application.Instruments.Queries;
+
+public class GetInstrumentByIdQueryHandler : IRequestHandler<GetInstrumentByIdQuery, Result<Instrument>>
 {
-    public class GetInstrumentByIdQueryHandler : IRequestHandler<GetInstrumentByIdQuery, Result<Instrument>>
+    private readonly IInstrumentQueries _queries;
+    private readonly ICurrentUserService _currentUser;
+
+    public GetInstrumentByIdQueryHandler(IInstrumentQueries queries, ICurrentUserService currentUser)
     {
-        private readonly IInstrumentQueries _queries;
+        _queries = queries;
+        _currentUser = currentUser;
+    }
 
-        public GetInstrumentByIdQueryHandler(IInstrumentQueries queries)
+    public async Task<Result<Instrument>> Handle(
+        GetInstrumentByIdQuery request,
+        CancellationToken cancellationToken)
+    {
+        var instrument = await _queries.GetByIdAsync(request.Id, cancellationToken);
+        if (instrument is null)
+            return Result<Instrument>.Failure(AuthorizationErrors.NotFound);
+
+        if (!_currentUser.IsMaster)
         {
-            _queries = queries;
+            var (guard, customerId) = await AccessGuard.RequireCustomerIdAsync(_currentUser, cancellationToken);
+            if (!guard.IsSuccess)
+                return Result<Instrument>.Failure(guard.Error!);
+
+            var ownership = AccessGuard.EnsureOwnCustomer(_currentUser, instrument.CustomerId, customerId);
+            if (!ownership.IsSuccess)
+                return Result<Instrument>.Failure(ownership.Error!);
         }
 
-        public async Task<Result<Instrument>> Handle(GetInstrumentByIdQuery request, CancellationToken cancellationToken)
-        {
-            var instrument = await _queries.GetByIdAsync(request.Id, cancellationToken);
-            if (instrument == null)
-                return Result<Instrument>.Failure("Instrument not found");
-            return Result<Instrument>.Success(instrument);
-        }
+        return Result<Instrument>.Success(instrument);
     }
 }

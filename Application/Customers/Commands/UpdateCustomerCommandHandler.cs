@@ -1,37 +1,48 @@
 ﻿using Application.Common;
+using Application.Common.Interfaces;
 using Application.Common.Interfaces.Repositories;
-using Domain.Customers;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace Application.Customers.Commands
+namespace Application.Customers.Commands;
+
+public class UpdateCustomerCommandHandler : IRequestHandler<UpdateCustomerCommand, Result>
 {
-    public class UpdateCustomerCommandHandler : IRequestHandler<UpdateCustomerCommand, Result>
+    private readonly ICustomerRepository _repository;
+    private readonly ICurrentUserService _currentUser;
+
+    public UpdateCustomerCommandHandler(
+        ICustomerRepository repository,
+        ICurrentUserService currentUser)
     {
-        private readonly ICustomerRepository _repository;
+        _repository = repository;
+        _currentUser = currentUser;
+    }
 
-        public UpdateCustomerCommandHandler(ICustomerRepository repository)
+    public async Task<Result> Handle(UpdateCustomerCommand request, CancellationToken cancellationToken)
+    {
+        var customer = await _repository.GetByIdAsync(request.Id, cancellationToken);
+        if (customer is null)
+            return Result.Failure(AuthorizationErrors.NotFound);
+
+        if (!_currentUser.IsMaster)
         {
-            _repository = repository;
+            var (guard, customerId) = await AccessGuard.RequireCustomerIdAsync(_currentUser, cancellationToken);
+            if (!guard.IsSuccess)
+                return guard;
+
+            var ownership = AccessGuard.EnsureOwnCustomer(_currentUser, customer.Id, customerId);
+            if (!ownership.IsSuccess)
+                return ownership;
         }
 
-        public async Task<Result> Handle(UpdateCustomerCommand request, CancellationToken cancellationToken)
-        {
-            var customer = await _repository.GetByIdAsync(request.Id, cancellationToken);
-            if (customer == null)
-                return Result.Failure("Customer not found");
+        customer.UpdateDetails(
+            request.FirstName,
+            request.LastName,
+            request.PhoneNumber,
+            request.Email);
 
-            customer.UpdateDetails(
-                request.FirstName,
-                request.LastName,
-                request.PhoneNumber,
-                request.Email
-            );
+        await _repository.UpdateAsync(customer, cancellationToken);
 
-            await _repository.UpdateAsync(customer, cancellationToken);
-
-            return Result.Success();
-        }
+        return Result.Success();
     }
 }

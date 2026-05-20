@@ -8,6 +8,7 @@ namespace Application.Common.Interfaces.Queries
     public interface ICustomerQueries
     {
         Task<Customer?> GetByIdAsync(CustomerId id, CancellationToken cancellationToken = default);
+        Task<Customer?> GetByIdentityIdAsync(string identityId, CancellationToken cancellationToken = default);
         Task<IEnumerable<Customer>> GetAllAsync(CancellationToken cancellationToken = default);
     }
 }

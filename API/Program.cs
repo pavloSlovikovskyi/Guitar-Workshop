@@ -85,8 +85,8 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 var app = builder.Build();
 
-// Автоматичний запуск сідера ролей (Master / Customer)
-await IdentityRoleSeeder.SeedAsync(app.Services);
+if (!app.Environment.IsEnvironment("Testing"))
+    await IdentityRoleSeeder.SeedAsync(app.Services);
 
 if (app.Environment.IsDevelopment())
 {

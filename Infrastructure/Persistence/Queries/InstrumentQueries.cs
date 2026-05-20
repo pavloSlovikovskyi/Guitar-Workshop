@@ -1,4 +1,5 @@
 ﻿using Application.Common.Interfaces.Queries;
+using Domain.Customers;
 using Domain.Instruments;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -30,6 +31,16 @@ namespace Infrastructure.Persistence.Queries
         {
             return await _context.Instruments
                 .AsNoTracking()
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<IEnumerable<Instrument>> GetAllByCustomerIdAsync(
+            CustomerId customerId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.Instruments
+                .AsNoTracking()
+                .Where(i => i.CustomerId == customerId)
                 .ToListAsync(cancellationToken);
         }
     }

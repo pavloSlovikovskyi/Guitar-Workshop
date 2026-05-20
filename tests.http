@@ -1,0 +1,79 @@
+# ==========================================
+# КОНФІГУРАЦІЯ СЕРВЕРА ТА ТОКЕНІВ
+# ==========================================
+@hostname = localhost
+@port = 7250
+@baseUrl = https://{{hostname}}:{{port}}/api
+
+# Після виконання запитів логіну — скопіюй сюди чисті JWT-токени (без слова Bearer)
+@customerToken = встав_сюди_токен_testuser_після_логіну
+@masterToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6ImIyNzI4ZTkwLTgzNWEtNDgxMy05NDc1LTA1ZmFlYjYzZDE5OSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6Im1hc3RlckB3b3Jrc2hvcC5jb20iLCJqdGkiOiIzNGY5NmM4Mi1kNGUxLTQxNDctYWRlMS1kNjAzNDg0NmU5YzgiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJNYXN0ZXIiLCJleHAiOjE3NzkzMTIzOTcsImlzcyI6Ikd1aXRhcldvcmtzaG9wQXBpIiwiYXVkIjoiR3VpdGFyV29ya3Nob3BDbGllbnRzIn0.eNfXVI2rpO25PAX7TEg3C3dgufQFALI7E48MR0kxP14
+
+# ==========================================
+# 1. АВТЕНТИФІКАЦІЯ (Отримання токенів)
+# ==========================================
+
+### Логін як Майстер (master)
+# @name masterLogin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "master@workshop.com",
+  "password": "MasterPassword123!"
+}
+
+# ==========================================
+# 2. ТЕСТИ ДЛЯ КЛІЄНТА (Customer)
+# ==========================================
+
+### Клієнт: Отримати свій профіль (Має повернути 200 OK і дані профілю)
+GET {{baseUrl}}/customers/me
+Authorization: Bearer {{customerToken}}
+
+### Клієнт: Отримати свої інструменти (Має повернути 200 OK і порожній масив [])
+GET {{baseUrl}}/instruments
+Authorization: Bearer {{customerToken}}
+
+### Клієнт: Спроба створити тип послуги (Має повернути 403 Forbidden!)
+POST {{baseUrl}}/service-types
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{
+  "name": "Зміна ладів (Тест Клієнта)",
+  "price": 2500
+}
+
+# ==========================================
+# 3. ТЕСТИ ДЛЯ МАЙСТРА (Master)
+# ==========================================
+
+### Майстер: Отримати Всі інструменти (Має повернути 200 OK і список взагалі всіх гітар)
+GET {{baseUrl}}/instruments
+Authorization: Bearer {{masterToken}}
+
+### Майстер: Створити тип послуги (Має повернути 201 Created)
+POST {{baseUrl}}/services
+Authorization: Bearer {{masterToken}}
+Content-Type: application/json
+
+{
+  "title": "Шліфування ладів 2.0",
+  "description": "Покращене шліфування для ідеального звучання",
+  "price": 1200
+}
+
+### Майстер: Створити новий інструмент для клієнта (Має повернути 201 Created)
+# УВАГА: Заміни customerId на реальний GUID з профілю testuser
+POST {{baseUrl}}/instruments
+Authorization: Bearer {{masterToken}}
+Content-Type: application/json
+
+{
+  "model": "Gibson Les Paul Custom",
+  "serialNumber": "81234567",
+  "recieveDate": "2026-05-17T22:00:00Z",
+  "status": "Ready",
+  "customerId": "1b456b94-5619-4901-b0e2-b0f0c490018a"
+}

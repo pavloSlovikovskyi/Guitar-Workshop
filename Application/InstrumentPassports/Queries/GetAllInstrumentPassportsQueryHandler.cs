@@ -1,26 +1,44 @@
 ﻿using Application.Common;
+using Application.Common.Interfaces;
 using Application.Common.Interfaces.Queries;
 using Domain.InstrumentPassports;
 using MediatR;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace Application.InstrumentPassports.Queries
+namespace Application.InstrumentPassports.Queries;
+
+public class GetAllInstrumentPassportsQueryHandler
+    : IRequestHandler<GetAllInstrumentPassportsQuery, Result<List<InstrumentPassport>>>
 {
-    public class GetAllInstrumentPassportsQueryHandler : IRequestHandler<GetAllInstrumentPassportsQuery, Result<List<InstrumentPassport>>>
+    private readonly IInstrumentPassportQueries _queries;
+    private readonly ICurrentUserService _currentUser;
+
+    public GetAllInstrumentPassportsQueryHandler(
+        IInstrumentPassportQueries queries,
+        ICurrentUserService currentUser)
     {
-        private readonly IInstrumentPassportQueries _queries;
+        _queries = queries;
+        _currentUser = currentUser;
+    }
 
-        public GetAllInstrumentPassportsQueryHandler(IInstrumentPassportQueries queries)
+    public async Task<Result<List<InstrumentPassport>>> Handle(
+        GetAllInstrumentPassportsQuery request,
+        CancellationToken cancellationToken)
+    {
+        IEnumerable<InstrumentPassport> passports;
+
+        if (_currentUser.IsMaster)
         {
-            _queries = queries;
+            passports = await _queries.GetAllAsync(cancellationToken);
+        }
+        else
+        {
+            var (guard, customerId) = await AccessGuard.RequireCustomerIdAsync(_currentUser, cancellationToken);
+            if (!guard.IsSuccess)
+                return Result<List<InstrumentPassport>>.Failure(guard.Error!);
+
+            passports = await _queries.GetAllByCustomerIdAsync(customerId!, cancellationToken);
         }
 
-        public async Task<Result<List<InstrumentPassport>>> Handle(GetAllInstrumentPassportsQuery request, CancellationToken cancellationToken)
-        {
-            var passports = await _queries.GetAllAsync(cancellationToken);
-            return Result<List<InstrumentPassport>>.Success(passports.ToList());
-        }
+        return Result<List<InstrumentPassport>>.Success(passports.ToList());
     }
 }

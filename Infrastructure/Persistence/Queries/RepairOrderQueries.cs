@@ -1,4 +1,5 @@
 ﻿using Application.Common.Interfaces.Queries;
+using Domain.Customers;
 using Domain.Instruments;
 using Domain.RepairOrders;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +26,16 @@ namespace Infrastructure.Persistence.Queries
                 .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
         }
 
+        public async Task<RepairOrder?> GetByIdWithInstrumentAsync(
+            RepairOrderId id,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.RepairOrders
+                .AsNoTracking()
+                .Include(r => r.Instrument)
+                .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+        }
+
         public async Task<IEnumerable<RepairOrder>> GetAllAsync(CancellationToken cancellationToken = default)
         {
             return await _context.RepairOrders
@@ -46,6 +57,20 @@ namespace Infrastructure.Persistence.Queries
                 .Include(o => o.Instrument)
                 .Include(o => o.RepairOrderServiceTypes)
                     .ThenInclude(ros => ros.ServiceType)
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<List<RepairOrder>> GetAllWithIncludesByCustomerIdAsync(
+            CustomerId customerId,
+            CancellationToken cancellationToken)
+        {
+            return await _context.RepairOrders
+                .AsNoTracking()
+                .Include(o => o.Instrument)
+                .Include(o => o.RepairOrderServiceTypes)
+                    .ThenInclude(ros => ros.ServiceType)
+                .Where(o => o.Instrument.CustomerId == customerId)
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync(cancellationToken);
         }

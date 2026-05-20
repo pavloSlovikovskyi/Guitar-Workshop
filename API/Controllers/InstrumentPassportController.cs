@@ -5,90 +5,90 @@ using Application.InstrumentPassports.Queries;
 using Domain.InstrumentPassports;
 using Domain.Instruments;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
 
-namespace API.Controllers
+namespace API.Controllers;
+
+[ApiController]
+[Route("api/instrument-passports")]
+[Authorize]
+public class InstrumentPassportController : ControllerBase
 {
-    [ApiController]
-    [Route("api/instrument-passports")]
-    public class InstrumentPassportController : ControllerBase
+    private readonly IMediator _mediator;
+
+    public InstrumentPassportController(IMediator mediator)
     {
-        private readonly IMediator _mediator;
+        _mediator = mediator;
+    }
 
-        public InstrumentPassportController(IMediator mediator)
-        {
-            _mediator = mediator;
-        }
+    [HttpPost]
+    [Authorize(Roles = AppRoles.Master)]
+    public async Task<IActionResult> Create([FromBody] CreateInstrumentPassportRequest request)
+    {
+        var command = new CreateInstrumentPassportCommand(
+            new InstrumentId(request.InstrumentId),
+            request.IssueDate,
+            request.Details
+        );
 
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateInstrumentPassportRequest request)
-        {
-            var command = new CreateInstrumentPassportCommand(
-                new InstrumentId(request.InstrumentId),
-                request.IssueDate,
-                request.Details
-            );
+        var result = await _mediator.Send(command);
+        if (!result.IsSuccess)
+            return BadRequest(new { message = result.Error });
 
+        return CreatedAtAction(nameof(GetById), new { id = result.Value!.Value }, new { id = result.Value.Value });
+    }
 
-            var result = await _mediator.Send(command);
-            if (!result.IsSuccess)
-                return BadRequest(new { message = result.Error });
+    [HttpGet("{id:guid}")]
+    [Authorize(Roles = $"{AppRoles.Master},{AppRoles.Customer}")]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        var result = await _mediator.Send(new GetInstrumentPassportByIdQuery(new InstrumentPassportId(id)));
+        if (!result.IsSuccess)
+            return NotFound(new { message = result.Error });
 
-            return CreatedAtAction(nameof(GetById), new { id = result.Value.Value }, new { id = result.Value.Value });
-        }
+        return Ok(InstrumentPassportResponse.FromDomainModel(result.Value!));
+    }
 
-        [HttpGet("{id:guid}")]
-        public async Task<IActionResult> GetById(Guid id)
-        {
-            var query = new GetInstrumentPassportByIdQuery(new InstrumentPassportId(id));
-            var result = await _mediator.Send(query);
-            if (!result.IsSuccess)
-                return NotFound(new { message = result.Error });
+    [HttpPut("{id:guid}")]
+    [Authorize(Roles = AppRoles.Master)]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateInstrumentPassportRequest request)
+    {
+        var command = new UpdateInstrumentPassportCommand(
+            new InstrumentPassportId(id),
+            request.IssueDate,
+            request.Details
+        );
 
-            var response = InstrumentPassportResponse.FromDomainModel(result.Value);
-            return Ok(response);
-        }
+        var result = await _mediator.Send(command);
+        if (!result.IsSuccess)
+            return BadRequest(new { message = result.Error });
 
-        [HttpPut("{id:guid}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateInstrumentPassportRequest request)
-        {
-            var command = new UpdateInstrumentPassportCommand(
-                new InstrumentPassportId(id),
-                request.IssueDate,
-                request.Details
-            );
+        return NoContent();
+    }
 
-            var result = await _mediator.Send(command);
-            if (!result.IsSuccess)
-                return BadRequest(new { message = result.Error });
+    [HttpDelete("{id:guid}")]
+    [Authorize(Roles = AppRoles.Master)]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var command = new DeleteInstrumentPassportCommand(new InstrumentPassportId(id));
+        var result = await _mediator.Send(command);
+        if (!result.IsSuccess)
+            return BadRequest(new { message = result.Error });
 
-            return NoContent();
-        }
+        return NoContent();
+    }
 
-        [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> Delete(Guid id)
-        {
-            var command = new DeleteInstrumentPassportCommand(new InstrumentPassportId(id));
-            var result = await _mediator.Send(command);
-            if (!result.IsSuccess)
-                return BadRequest(new { message = result.Error });
+    [HttpGet]
+    [Authorize(Roles = $"{AppRoles.Master},{AppRoles.Customer}")]
+    public async Task<IActionResult> GetAll()
+    {
+        var result = await _mediator.Send(new GetAllInstrumentPassportsQuery());
 
-            return NoContent();
-        }
+        if (!result.IsSuccess)
+            return BadRequest(new { message = result.Error });
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
-        {
-            var query = new GetAllInstrumentPassportsQuery();
-            var result = await _mediator.Send(query);
-
-            if (!result.IsSuccess)
-                return BadRequest(new { message = result.Error });
-
-            var response = result.Value.Select(InstrumentPassportResponse.FromDomainModel);
-            return Ok(response);
-        }
+        var response = result.Value!.Select(InstrumentPassportResponse.FromDomainModel);
+        return Ok(response);
     }
 }

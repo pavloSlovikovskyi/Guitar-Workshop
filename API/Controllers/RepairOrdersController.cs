@@ -5,88 +5,91 @@ using Application.RepairOrders.Queries;
 using Domain.Instruments;
 using Domain.RepairOrders;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
 
-namespace Api.Controllers
+namespace Api.Controllers;
+
+[ApiController]
+[Route("api/orders")]
+[Authorize]
+public class RepairOrderController : ControllerBase
 {
-    [ApiController]
-    [Route("api/orders")]
-    public class RepairOrderController : ControllerBase
+    private readonly IMediator _mediator;
+
+    public RepairOrderController(IMediator mediator)
     {
-        private readonly IMediator _mediator;
+        _mediator = mediator;
+    }
 
-        public RepairOrderController(IMediator mediator)
-        {
-            _mediator = mediator;
-        }
+    [HttpPost]
+    [Authorize(Roles = AppRoles.Master)]
+    public async Task<IActionResult> Create([FromBody] CreateRepairOrderRequest request)
+    {
+        var command = new CreateRepairOrderCommand(
+            new InstrumentId(request.InstrumentId),
+            request.OrderDate,
+            request.Status,
+            request.Notes
+        );
 
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateRepairOrderRequest request)
-        {
-            var command = new CreateRepairOrderCommand(
-                new InstrumentId(request.InstrumentId),
-                request.OrderDate,
-                request.Status,
-                request.Notes
-            );
+        var result = await _mediator.Send(command);
+        if (!result.IsSuccess)
+            return BadRequest(new { message = result.Error });
 
-            var result = await _mediator.Send(command);
-            if (!result.IsSuccess)
-                return BadRequest(new { message = result.Error });
+        return CreatedAtAction(nameof(GetById), new { id = result.Value!.Value }, new { id = result.Value.Value });
+    }
 
-            return CreatedAtAction(nameof(GetById), new { id = result.Value.Value }, new { id = result.Value.Value });
-        }
+    [HttpGet]
+    [Authorize(Roles = $"{AppRoles.Master},{AppRoles.Customer}")]
+    public async Task<IActionResult> GetAll()
+    {
+        var result = await _mediator.Send(new GetAllRepairOrdersQuery());
+        if (!result.IsSuccess)
+            return BadRequest(new { message = result.Error });
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
-        {
-            var result = await _mediator.Send(new GetAllRepairOrdersQuery());
-            if (!result.IsSuccess)
-                return BadRequest(new { message = result.Error });
+        return Ok(result.Value);
+    }
 
-            return Ok(result.Value);
-        }
+    [HttpGet("{id:guid}")]
+    [Authorize(Roles = $"{AppRoles.Master},{AppRoles.Customer}")]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        var result = await _mediator.Send(new GetRepairOrderByIdQuery(new RepairOrderId(id)));
+        if (!result.IsSuccess)
+            return NotFound(new { message = result.Error });
 
-        [HttpGet("{id:guid}")]
-        public async Task<IActionResult> GetById(Guid id)
-        {
-            var result = await _mediator.Send(new GetRepairOrderByIdQuery(new RepairOrderId(id)));
-            if (!result.IsSuccess)
-                return NotFound(new { message = result.Error });
+        return Ok(result.Value);
+    }
 
-            return Ok(result.Value);
-        }
+    [HttpPut("{id:guid}")]
+    [Authorize(Roles = AppRoles.Master)]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateRepairOrderRequest request)
+    {
+        var command = new UpdateRepairOrderCommand(
+            new RepairOrderId(id),
+            new InstrumentId(request.InstrumentId),
+            request.OrderDate,
+            request.Status,
+            request.Notes
+        );
 
-        [HttpPut("{id:guid}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateRepairOrderRequest request)
-        {
-            var command = new UpdateRepairOrderCommand(
-                new RepairOrderId(id),
-                new InstrumentId(request.InstrumentId),
-                request.OrderDate,
-                request.Status,
-                request.Notes
-            );
+        var result = await _mediator.Send(command);
+        if (!result.IsSuccess)
+            return BadRequest(new { message = result.Error });
 
-            var result = await _mediator.Send(command);
-            if (!result.IsSuccess)
-                return BadRequest(new { message = result.Error });
+        return NoContent();
+    }
 
-            return NoContent();
-        }
+    [HttpPatch("{id:guid}/status")]
+    [Authorize(Roles = AppRoles.Master)]
+    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateRepairOrderStatusRequest request)
+    {
+        var command = new UpdateRepairOrderStatusCommand(new RepairOrderId(id), request.Status);
+        var result = await _mediator.Send(command);
+        if (!result.IsSuccess)
+            return BadRequest(new { message = result.Error });
 
-        [HttpPatch("{id:guid}/status")]
-        public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateRepairOrderStatusRequest request)
-        {
-            var command = new UpdateRepairOrderStatusCommand(new RepairOrderId(id), request.Status);
-            var result = await _mediator.Send(command);
-            if (!result.IsSuccess)
-                return BadRequest(new { message = result.Error });
-
-            return NoContent();
-        }
+        return NoContent();
     }
 }
-

@@ -101,14 +101,8 @@ public class RepairOrderServiceTypeControllerTests : BaseIntegrationTest, IAsync
     [Fact]
     public async Task ShouldRemoveServiceFromOrder()
     {
-        var request = new RemoveServiceFromOrderRequest(_firstTestService.Id);
-
-        var response = await Client.SendAsync(new HttpRequestMessage
-        {
-            Method = HttpMethod.Delete,
-            RequestUri = new Uri($"{Client.BaseAddress}api/orders/{_testOrder.Id}/services"),
-            Content = JsonContent.Create(request)
-        });
+        var response = await Client.DeleteAsync(
+            $"api/orders/{_testOrder.Id.Value}/services/{_firstTestService.Id.Value}");
 
         response.IsSuccessStatusCode.Should().BeTrue();
 
@@ -121,14 +115,8 @@ public class RepairOrderServiceTypeControllerTests : BaseIntegrationTest, IAsync
     [Fact]
     public async Task ShouldNotRemoveNonExistentService()
     {
-        var request = new RemoveServiceFromOrderRequest(_secondTestService.Id);
-
-        var response = await Client.SendAsync(new HttpRequestMessage
-        {
-            Method = HttpMethod.Delete,
-            RequestUri = new Uri($"{Client.BaseAddress}api/orders/{_testOrder.Id}/services"),
-            Content = JsonContent.Create(request)
-        });
+        var response = await Client.DeleteAsync(
+            $"api/orders/{_testOrder.Id.Value}/services/{_secondTestService.Id.Value}");
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }

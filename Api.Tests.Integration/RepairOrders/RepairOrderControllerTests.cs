@@ -61,8 +61,8 @@ public class RepairOrderControllerTests : BaseIntegrationTest, IAsyncLifetime
         orders.Should().HaveCount(2);
         foreach (var order in orders)
         {
-            order.Id.Value.Should().NotBe(Guid.Empty);
-            order.InstrumentId.Value.Should().NotBe(Guid.Empty);
+            order.Id.Should().NotBe(Guid.Empty);
+            order.InstrumentId.Should().NotBe(Guid.Empty);
         }
     }
 
@@ -77,7 +77,7 @@ public class RepairOrderControllerTests : BaseIntegrationTest, IAsyncLifetime
 
         var order = await response.ToResponseModel<TestModel.RepairOrderResponseDto>();
 
-        order.Id.Value.Should().Be(_firstTestOrder.Id.Value);
+        order.Id.Should().Be(_firstTestOrder.Id.Value);
         order.InstrumentId.Value.Should().Be(_testInstrument.Id.Value);
     }
 

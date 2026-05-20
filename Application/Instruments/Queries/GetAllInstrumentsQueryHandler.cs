@@ -1,28 +1,41 @@
 ﻿using Application.Common;
+using Application.Common.Interfaces;
 using Application.Common.Interfaces.Queries;
 using Domain.Instruments;
 using MediatR;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace Application.Instruments.Queries
+namespace Application.Instruments.Queries;
+
+public class GetAllInstrumentsQueryHandler : IRequestHandler<GetAllInstrumentsQuery, Result<List<Instrument>>>
 {
-    public class GetAllInstrumentsQueryHandler : IRequestHandler<GetAllInstrumentsQuery, Result<List<Instrument>>>
+    private readonly IInstrumentQueries _queries;
+    private readonly ICurrentUserService _currentUser;
+
+    public GetAllInstrumentsQueryHandler(IInstrumentQueries queries, ICurrentUserService currentUser)
     {
-        private readonly IInstrumentQueries _queries;
+        _queries = queries;
+        _currentUser = currentUser;
+    }
 
-        public GetAllInstrumentsQueryHandler(IInstrumentQueries queries)
+    public async Task<Result<List<Instrument>>> Handle(
+        GetAllInstrumentsQuery request,
+        CancellationToken cancellationToken)
+    {
+        IEnumerable<Instrument> instruments;
+
+        if (_currentUser.IsMaster)
         {
-            _queries = queries;
+            instruments = await _queries.GetAllAsync(cancellationToken);
+        }
+        else
+        {
+            var (guard, customerId) = await AccessGuard.RequireCustomerIdAsync(_currentUser, cancellationToken);
+            if (!guard.IsSuccess)
+                return Result<List<Instrument>>.Failure(guard.Error!);
+
+            instruments = await _queries.GetAllByCustomerIdAsync(customerId!, cancellationToken);
         }
 
-        public async Task<Result<List<Instrument>>> Handle(GetAllInstrumentsQuery request, CancellationToken cancellationToken)
-        {
-            var instruments = await _queries.GetAllAsync(cancellationToken);
-            if (instruments == null)
-                return Result<List<Instrument>>.Failure("Instruments not found");
-            return Result<List<Instrument>>.Success(instruments.ToList());
-        }
+        return Result<List<Instrument>>.Success(instruments.ToList());
     }
 }

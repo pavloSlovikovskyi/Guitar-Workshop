@@ -10,16 +10,15 @@ using System.Threading.Tasks;
 
 namespace Tests.Common.ResponseModels
 {
-    public record RepairOrderId([property: JsonProperty("value")] Guid Value);
-    public record InstrumentIdDto([property: JsonProperty("value")] Guid Value);
+    public record ServiceTypeResponseDto(Guid Id, string Title);
+
     public record RepairOrderResponseDto(
-        RepairOrderId Id,
-        InstrumentIdDto InstrumentId,
+        Guid Id,
+        Guid InstrumentId,
         DateTime OrderDate,
         RepairOrderStatus Status,
         string Notes,
         DateTime CreatedAt,
-        DateTime? UpdatedAt);
-
-
+        DateTime? UpdatedAt,
+        List<ServiceTypeResponseDto> Services);
 }
