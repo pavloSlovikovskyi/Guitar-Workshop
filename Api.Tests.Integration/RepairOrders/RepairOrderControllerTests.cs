@@ -71,13 +71,13 @@ public class RepairOrderControllerTests : BaseIntegrationTest, IAsyncLifetime
     {
         var repairOrderId = _firstTestOrder.Id;
 
-        var response = await Client.GetAsync($"{BaseRoute}/{repairOrderId.Value}");
+        var response = await Client.GetAsync($"{BaseRoute}/{repairOrderId}");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var order = await response.ToResponseModel<TestModel.RepairOrderResponseDto>();
+        var order = await response.ToResponseModel<TestModel.RepairOrderDetailsResponseDto>();
 
-        order.Id.Should().Be(_firstTestOrder.Id.Value);
+        order.Id.Value.Should().Be(_firstTestOrder.Id.Value);
         order.InstrumentId.Value.Should().Be(_testInstrument.Id.Value);
     }
 

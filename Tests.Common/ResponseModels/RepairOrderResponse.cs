@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 
 namespace Tests.Common.ResponseModels
 {
+    public record ValueId(Guid Value);
+
     public record ServiceTypeResponseDto(Guid Id, string Title);
 
     public record RepairOrderResponseDto(
@@ -21,4 +23,9 @@ namespace Tests.Common.ResponseModels
         DateTime CreatedAt,
         DateTime? UpdatedAt,
         List<ServiceTypeResponseDto> Services);
+
+    public record RepairOrderDetailsResponseDto(
+        ValueId Id,
+        ValueId InstrumentId
+    );
 }
