@@ -55,6 +55,7 @@ namespace Infrastructure.Persistence.Queries
         {
             return await _context.RepairOrders
                 .Include(o => o.Instrument)
+                    .ThenInclude(i => i.Customer)
                 .Include(o => o.RepairOrderServiceTypes)
                     .ThenInclude(ros => ros.ServiceType)
                 .OrderByDescending(o => o.CreatedAt)
@@ -68,6 +69,7 @@ namespace Infrastructure.Persistence.Queries
             return await _context.RepairOrders
                 .AsNoTracking()
                 .Include(o => o.Instrument)
+                    .ThenInclude(i => i.Customer)
                 .Include(o => o.RepairOrderServiceTypes)
                     .ThenInclude(ros => ros.ServiceType)
                 .Where(o => o.Instrument.CustomerId == customerId)
