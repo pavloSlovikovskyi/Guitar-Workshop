@@ -21,13 +21,14 @@ public class WordReportGenerator : IReportGenerator
             .Italic();
 
         var rowList = rows.ToList();
-        var table = document.AddTable(rowList.Count + 2, 4);
+        var table = document.AddTable(rowList.Count + 2, 5);
         table.Design = TableDesign.TableGrid;
 
         table.Rows[0].Cells[0].Paragraphs[0].Append("ID").Bold();
         table.Rows[0].Cells[1].Paragraphs[0].Append("Customer").Bold();
         table.Rows[0].Cells[2].Paragraphs[0].Append("Instrument").Bold();
-        table.Rows[0].Cells[3].Paragraphs[0].Append("Sum").Bold();
+        table.Rows[0].Cells[3].Paragraphs[0].Append("Services").Bold();
+        table.Rows[0].Cells[4].Paragraphs[0].Append("Sum").Bold();
 
         for (var i = 0; i < rowList.Count; i++)
         {
@@ -36,13 +37,14 @@ public class WordReportGenerator : IReportGenerator
             table.Rows[rowIndex].Cells[0].Paragraphs[0].Append(row.Id);
             table.Rows[rowIndex].Cells[1].Paragraphs[0].Append(row.Customer);
             table.Rows[rowIndex].Cells[2].Paragraphs[0].Append(row.Instrument);
-            table.Rows[rowIndex].Cells[3].Paragraphs[0].Append($"{row.Sum:0.00}");
+            table.Rows[rowIndex].Cells[3].Paragraphs[0].Append(row.Services);
+            table.Rows[rowIndex].Cells[4].Paragraphs[0].Append($"{row.Sum:0.00}");
         }
 
         var totalRowIndex = rowList.Count + 1;
         table.Rows[totalRowIndex].Cells[0].Paragraphs[0].Append("Total").Bold();
-        table.Rows[totalRowIndex].MergeCells(0, 2);
-        table.Rows[totalRowIndex].Cells[3].Paragraphs[0].Append($"{total:0.00}").Bold();
+        table.Rows[totalRowIndex].MergeCells(0, 3);
+        table.Rows[totalRowIndex].Cells[4].Paragraphs[0].Append($"{total:0.00}").Bold();
 
         document.InsertTable(table);
 

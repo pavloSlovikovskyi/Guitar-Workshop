@@ -31,6 +31,7 @@ public class GetOrdersReportHandler : IRequestHandler<GetOrdersReportQuery, Resu
             Instrument: o.Instrument is null
                 ? "Unknown"
                 : $"{o.Instrument.Model} ({o.Instrument.SerialNumber})",
+            Services: string.Join(", ", o.RepairOrderServiceTypes.Select(x => x.ServiceType.Title)),
             Sum: o.RepairOrderServiceTypes.Sum(x => x.ServiceType.Price)
         )).ToList();
 

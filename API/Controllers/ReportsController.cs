@@ -36,10 +36,12 @@ public class ReportsController : ControllerBase
     {
         return format switch
         {
-            ReportFormat.Excel =>
+            ReportFormat.Excel => 
                 ("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "xlsx"),
-            ReportFormat.Word =>
-                ("application/vnd.openxmlformats-officedocument.wordprocessingml.document", "docx"),
+            
+            ReportFormat.Word => 
+                ("application/pdf", "pdf"), 
+                
             _ => ("application/pdf", "pdf")
         };
     }

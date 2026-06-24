@@ -14,7 +14,8 @@ public class ExcelReportGenerator : IReportGenerator
         sheet.Cell(1, 1).Value = "ID";
         sheet.Cell(1, 2).Value = "Customer";
         sheet.Cell(1, 3).Value = "Instrument";
-        sheet.Cell(1, 4).Value = "Sum";
+        sheet.Cell(1, 4).Value = "Services";
+        sheet.Cell(1, 5).Value = "Sum";
 
         var rowIndex = 2;
         foreach (var row in rows)
@@ -22,17 +23,18 @@ public class ExcelReportGenerator : IReportGenerator
             sheet.Cell(rowIndex, 1).Value = row.Id;
             sheet.Cell(rowIndex, 2).Value = row.Customer;
             sheet.Cell(rowIndex, 3).Value = row.Instrument;
-            sheet.Cell(rowIndex, 4).Value = row.Sum;
+            sheet.Cell(rowIndex, 4).Value = row.Services;
+            sheet.Cell(rowIndex, 5).Value = row.Sum;
             rowIndex++;
         }
 
         sheet.Cell(rowIndex, 1).Value = "Total";
-        sheet.Range(rowIndex, 1, rowIndex, 3).Merge();
-        sheet.Cell(rowIndex, 4).Value = total;
+        sheet.Range(rowIndex, 1, rowIndex, 4).Merge();
+        sheet.Cell(rowIndex, 5).Value = total;
 
         sheet.Row(1).Style.Font.Bold = true;
         sheet.Row(rowIndex).Style.Font.Bold = true;
-        sheet.Column(4).Style.NumberFormat.Format = "0.00";
+        sheet.Column(5).Style.NumberFormat.Format = "0.00";
         sheet.Columns().AdjustToContents();
 
         using var stream = new MemoryStream();

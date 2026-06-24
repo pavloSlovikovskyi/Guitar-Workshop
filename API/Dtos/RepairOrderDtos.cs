@@ -23,6 +23,7 @@ namespace API.Dtos
     public record RepairOrderResponse(
         Guid Id,
         Guid InstrumentId,
+        string InstrumentName,
         DateTime OrderDate,
         RepairOrderStatus Status,
         string Notes,

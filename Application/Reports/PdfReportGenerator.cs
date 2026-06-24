@@ -34,6 +34,7 @@ public class PdfReportGenerator : IReportGenerator
                         columns.RelativeColumn(2);
                         columns.RelativeColumn(3);
                         columns.RelativeColumn(4);
+                        columns.RelativeColumn(5);
                         columns.RelativeColumn(2);
                     });
 
@@ -42,6 +43,7 @@ public class PdfReportGenerator : IReportGenerator
                         header.Cell().Element(HeaderCellStyle).Text("ID");
                         header.Cell().Element(HeaderCellStyle).Text("Customer");
                         header.Cell().Element(HeaderCellStyle).Text("Instrument");
+                        header.Cell().Element(HeaderCellStyle).Text("Services");
                         header.Cell().Element(HeaderCellStyle).AlignRight().Text("Sum");
                     });
 
@@ -50,10 +52,11 @@ public class PdfReportGenerator : IReportGenerator
                         table.Cell().Element(BodyCellStyle).Text(row.Id);
                         table.Cell().Element(BodyCellStyle).Text(row.Customer);
                         table.Cell().Element(BodyCellStyle).Text(row.Instrument);
+                        table.Cell().Element(BodyCellStyle).Text(row.Services);
                         table.Cell().Element(BodyCellStyle).AlignRight().Text($"{row.Sum:0.00}");
                     }
 
-                    table.Cell().ColumnSpan(3).Element(TotalCellStyle).AlignRight().Text("Total");
+                    table.Cell().ColumnSpan(4).Element(TotalCellStyle).AlignRight().Text("Total");
                     table.Cell().Element(TotalCellStyle).AlignRight().Text($"{total:0.00}");
                 });
 

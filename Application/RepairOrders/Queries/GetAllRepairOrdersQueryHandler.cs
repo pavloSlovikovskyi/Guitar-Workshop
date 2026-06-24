@@ -39,6 +39,7 @@ public class GetAllRepairOrdersQueryHandler : IRequestHandler<GetAllRepairOrders
         var result = orders.Select(o => new RepairOrderResponse(
             o.Id.Value,
             o.InstrumentId.Value,
+            o.Instrument?.Model ?? string.Empty,
             o.OrderDate,
             o.Status,
             o.Notes,
